@@ -13,6 +13,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - Abuse/audit persistence should store hashed or masked identifiers (`*_hash`, redacted tokens) and avoid raw PII columns in auxiliary tables.
 - Migration contract tests should assert indexed column order (not only index names) to lock intended query paths for queue and ranking endpoints.
 - Deterministic ranking logic should live in pure `lib/*.mjs` utilities with explicit weight constants and fixed `now` injection for reproducible tests.
+- For write-heavy API routes using `postgres` tagged templates, explicit `begin`/`commit`/`rollback` statements provide straightforward transactional control that keeps TypeScript checks simple.
 
 ---
 ## 2026-02-12 03:03 America/Chicago - US-001: Create Geist-aligned brand guidelines document
@@ -85,4 +86,12 @@ Started: 2026-02-12 03:02 America/Chicago
 - Exposed reusable helpers (`calculateOverlapScore`, `calculateComfortProximityScore`, `calculateConsentVisibilityScore`, `calculateRecencyScore`, `calculateMatchScore`, `rankMatches`) for route handler integration.
 - Added `tests/match-scoring.test.mjs` covering deterministic repeatability, full formula contribution checks, and enforced tie-break behavior (`total_score desc`, `overlap desc`, `candidate id asc`).
 - **Learnings:** Injecting a fixed `now` timestamp into pure ranking helpers is essential for stable deterministic scoring tests when recency contributes to totals.
+---
+## 2026-02-15 03:49 America/Chicago - US-003: Add backend endpoint to generate and persist top-N attendee matches
+- Added `POST /api/matches/generate` with `topN` + optional `attendeeIds` filtering and creator attribution support.
+- Implemented transactional run generation that creates one `match_runs` record and persists `attendee_matches` rows with deterministic ranking and full score breakdown fields.
+- Ensured response and persisted profile snapshots are privacy-safe (`email` excluded; title/company only when consented).
+- Added endpoint contract tests in `tests/match-generation-endpoint.test.mjs` for transaction behavior, deterministic ranking integration, score field persistence contracts, and privacy boundary checks.
+- Updated plan file `plans/2026-02-15-invite-match-engine.md` with US-003 completion checklist.
+- **Learnings:** Transaction control via explicit SQL statements avoids typed transaction wrapper friction while keeping endpoint behavior clear and auditable.
 ---

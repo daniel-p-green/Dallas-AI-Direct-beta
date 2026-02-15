@@ -17,3 +17,9 @@ Implement deterministic attendee matching, facilitator approval workflow, audit 
 - Preserve `attendees_public` read boundary for any public surface.
 - Keep matching reproducible via deterministic tie-breakers.
 - Store scoring inputs/weights used at generation time for auditability.
+
+## Story focus (US-003)
+- [x] Add `POST /api/matches/generate` endpoint with `topN` + optional attendee filtering
+- [x] Persist `match_runs` + `attendee_matches` inside one DB transaction
+- [x] Return privacy-safe response payload (no email/private-only fields)
+- [x] Add endpoint contract tests for persistence, deterministic ranking call, and score/audit fields
