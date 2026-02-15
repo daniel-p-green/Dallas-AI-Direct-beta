@@ -28,3 +28,5 @@ Add signup route protections (rate limit + risk heuristics), suspicious-event mo
 - US-006: Added stable signup trust decision logging schema (`signup_trust_decision`, `schemaVersion: 2026-02-15.v1`) with explicit allow/flag/block decision coverage, redacted/hash-only identifiers, route outcome metadata, and documentation updates for runtime incident response checks.
 
 - US-007: Added `/api/moderation/queue` read/update API for suspicious signup review with status filtering + pagination, risk-event linkage (reason/timestamps), redacted-safe identifiers, and persistence-backed resolution updates.
+
+- US-008: Updated `docs/security.md`, `docs/runtime-validation.md`, and `ops/incident-response.md` with configurable rate-limit/heuristic controls, deterministic burst->429 validation, suspicious-event persistence checks, and operator runbook steps for redacted trust-log + moderation queue triage.

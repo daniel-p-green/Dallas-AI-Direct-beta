@@ -4,6 +4,7 @@ Task: Project: Dallas AI Direct Alpha. Task: Create a minimal brand implementati
 Started: 2026-02-12 03:02 America/Chicago
 
 ## Codebase Patterns
+- Operational runbook stories should add node:test phrase-contract coverage across both `docs/` and `ops/` artifacts so runtime/incident-response guidance stays executable and drift-resistant.
 - Abuse-risk heuristics should be implemented in a shared pure scorer module (`lib/*`) and mirrored with `.mjs` for direct `node:test` imports when route handlers need deterministic scoring assertions.
 - This repository currently stores product and technical deliverables as Markdown-first artifacts under `docs/` and `tests/`.
 - Validation for documentation stories can be implemented as lightweight shell checks in `tests/` when no package scripts exist.
@@ -254,4 +255,12 @@ Started: 2026-02-12 03:02 America/Chicago
 - Added `tests/moderation-queue-api.test.mjs` for queue read model contract, redaction/privacy boundary, and status update persistence assertions.
 - Updated `plans/2026-02-15-abuse-trust-layer-v1.md` with US-007 execution notes.
 - **Learnings:** Moderation queue APIs in this repo should return risk-event linkage inline so ops reviewers can triage without secondary joins while preserving redacted-only payloads.
+---
+## 2026-02-15 07:50 America/Chicago - US-008: Update docs and incident-response guidance for Abuse/Trust Layer v1
+- Updated `docs/security.md` with explicit configurable rate-limit env controls, heuristic scoring factors, and moderation queue operator workflow.
+- Updated `docs/runtime-validation.md` with deterministic burst->429 validation steps and suspicious-event persistence checks (`signup_risk_events` + `signup_moderation_queue` linkage).
+- Rewrote `ops/incident-response.md` to include redacted trust-log inspection, suspicious record triage, rate-limit validation, and evidence preservation workflow.
+- Added `tests/abuse-trust-docs-consistency.test.mjs` to enforce docs/runbook/runtime phrase-level contracts and plan-file presence.
+- Updated `plans/2026-02-15-abuse-trust-layer-v1.md` with US-008 execution note.
+- **Learnings:** For Abuse/Trust operations, docs should bind directly to concrete log schema/version and queue table names so on-call triage remains deterministic under incident pressure.
 ---

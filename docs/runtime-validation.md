@@ -19,9 +19,11 @@ and facilitator decisions are fully auditable.
 10. Re-run generation and verify ordered scores/results are identical (reproducibility check).
 11. Open facilitator queue and approve one suggestion + reject one suggestion.
 12. Verify each decision creates exactly one immutable audit event with actor, action, and timestamp.
-13. Trigger one normal signup, one suspicious signup (honeypot or duplicate), and one blocked/rate-limited attempt; confirm `signup_trust_decision` logs include `decision` allow/flag/block with `schemaVersion: 2026-02-15.v1`.
-14. Confirm signup trust logs contain hashed/redacted identifiers only (`emailHash`, `emailRedacted`, `ipHash`) and no raw email/IP values.
-15. Run mobile QR sanity validation and record evidence from `tests/ui-mobile-audit.md` and `tests/ui-mobile-audit.spec.ts`.
+13. Execute deterministic burst test: submit `SIGNUP_RATE_LIMIT_MAX_REQUESTS + 1` signups in a single `SIGNUP_RATE_LIMIT_WINDOW_MS` window from the same fingerprint; confirm final response is `429` with stable `X-RateLimit-*` and `Retry-After` headers.
+14. Trigger one normal signup, one suspicious signup (honeypot or duplicate), and one blocked/rate-limited attempt; confirm `signup_trust_decision` logs include `decision` allow/flag/block with `schemaVersion: 2026-02-15.v1`.
+15. Verify suspicious-event persistence: confirm corresponding rows are written to both `signup_risk_events` and `signup_moderation_queue` with matching `risk_event_id` linkage.
+16. Confirm signup trust logs contain hashed/redacted identifiers only (`emailHash`, `emailRedacted`, `ipHash`) and no raw email/IP values.
+17. Run mobile QR sanity validation and record evidence from `tests/ui-mobile-audit.md` and `tests/ui-mobile-audit.spec.ts`.
 
 ## Expected outputs
 
@@ -37,6 +39,8 @@ and facilitator decisions are fully auditable.
 - Deterministic match replay returns identical ordered suggestion IDs and score values.
 - Facilitator decision API returns updated suggestion status without private attendee fields.
 - Audit table contains one appended event per approve/reject action and preserves prior events.
+- Burst replay over configured limit deterministically returns `429` with stable rate-limit headers.
+- Suspicious signup attempts persist linked records across `signup_risk_events` and `signup_moderation_queue` for moderator triage.
 - Mobile QR sanity evidence confirms:
   - iPhone Safari and Android Chrome were validated.
   - 375px signup behavior has no horizontal overflow.
