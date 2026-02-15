@@ -34,6 +34,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - Deterministic 429 contracts should include explicit `X-RateLimit-*` and `Retry-After` headers derived from the same window snapshot used for enforcement.
 - Signup abuse telemetry switches should be modeled in the shared env config parser (TypeScript + `.mjs` mirror) so route behavior and test imports stay in lockstep.
 - Moderation review endpoints should join queue rows with linked risk-event rows and return only redacted/hash identifiers to keep triage context complete without exposing PII.
+- Remotion storyboard compositions should centralize scene labels/copy in a single array constant so narrative sequencing and privacy messaging can be contract-tested without a browser harness.
 
 ---
 ## 2026-02-12 03:03 America/Chicago - US-001: Create Geist-aligned brand guidelines document
@@ -288,4 +289,12 @@ Started: 2026-02-12 03:02 America/Chicago
 - Extended `tests/remotion-scaffold.test.mjs` to validate README demo linkage, privacy-safe caption language, and artifact existence/non-empty output.
 - Updated `demo/remotion/README.md` and plan checklist (`plans/2026-02-15-remotion-readme-demo.md`) to reflect shipped render outputs.
 - **Learnings:** For repo-published demo media, render directly into versioned public asset paths and enforce README linkage via `node:test` contracts.
+---
+## 2026-02-15 09:07 America/Chicago - US-002: Implement storyboard composition for Dallas AI Direct hero flow
+- Reworked `demo/remotion/src/compositions/DallasAIDirectFlow.jsx` into an explicit storyboard-driven scene sequence covering QR signup, room board update, and privacy-safe public view beats with legible typography and paced transitions.
+- Added explicit privacy copy in composition content: attendee email is never shown publicly, plus no-public-email-exposure reinforcement in scene note text.
+- Tuned composition defaults for lightweight README distribution in `demo/remotion/src/Root.jsx` (216 frames, 24fps, 960x540) and documented these defaults in `demo/remotion/README.md`.
+- Added composition contract tests in `tests/remotion-storyboard-composition.test.mjs` to assert required narrative beats, privacy messaging, and optimized documented defaults.
+- Updated `plans/2026-02-15-remotion-readme-demo.md` tracker with US-002 completion.
+- **Learnings:** For Remotion stories in this repo, source-level `node:test` contracts are a fast way to lock narrative/privacy requirements without introducing a visual snapshot harness.
 ---

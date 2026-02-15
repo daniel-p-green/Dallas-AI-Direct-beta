@@ -35,6 +35,10 @@
 - [x] Integrate README section + demo artifact links/captions
 - [x] Add/update tests and run verification gates
 
+## Story execution tracker
+- [x] US-001: Scaffold isolated Remotion demo workspace under `demo/remotion`
+- [x] US-002: Implement storyboard composition for Dallas AI Direct hero flow
+
 ## Verification plan
 - `npm run typecheck`
 - `npm test`

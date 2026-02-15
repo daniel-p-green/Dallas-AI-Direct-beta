@@ -11,10 +11,17 @@ This folder owns the README demo video source for Dallas AI Direct.
 ## Structure
 
 - `src/index.js`: Remotion entrypoint (`registerRoot`)
-- `src/Root.jsx`: composition registration
+- `src/Root.jsx`: composition registration + lightweight defaults
 - `src/compositions/`: product demo compositions
 - `assets/`: local static assets (images/icons/fonts) for demos
 - `remotion.config.js`: render defaults
+
+## Composition defaults
+
+`DallasAIDirectFlow` is tuned for README-friendly size and pacing:
+- Duration: `216` frames (~9s)
+- FPS: `24`
+- Dimensions: `960x540`
 
 ## Usage (from repo root)
 
