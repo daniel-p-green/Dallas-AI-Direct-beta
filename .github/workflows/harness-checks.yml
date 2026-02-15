@@ -1,0 +1,10 @@
+name: Harness Checks
+on:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  harness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: test -f AGENTS.md && test -f docs/harness/README.md && test -f docs/harness/plan-template.md && test -f docs/harness/pr-contract.md
