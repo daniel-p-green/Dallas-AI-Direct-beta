@@ -18,6 +18,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - Decision/update APIs should lock target rows with `SELECT ... FOR UPDATE` and gate transitions (`status='suggested'`) before writing immutable audit events.
 - Facilitator admin actions should use optimistic queue removal plus background re-fetch to keep UI responsive without full page reloads.
 - Backward-compatible Postgres migrations should guard additive column changes with `information_schema.columns` checks to keep reruns safe across partially migrated environments.
+- Privacy regression tests for API routes should assert both payload safety (no `email`) and query-shape safety (no `SELECT *` over sensitive tables) to catch leak regressions early.
 
 ---
 ## 2026-02-12 03:03 America/Chicago - US-001: Create Geist-aligned brand guidelines document
@@ -130,4 +131,11 @@ Started: 2026-02-12 03:02 America/Chicago
 - Added query-path indexes for active-event lookup (`events_single_active_idx`, `events_active_starts_at_idx`) and event-scoped attendee reads (`attendees_event_id_created_at_idx`).
 - Added migration contract tests in `tests/event-session-schema.test.mjs` and updated `docs/data-model.md` + plan tracking with event-session model/compatibility notes.
 - **Learnings:** Event-session schema rollout can preserve existing attendee rows by keeping `event_id` nullable initially while indexing event-scoped reads for incremental adoption.
+---
+## 2026-02-15 04:27 America/Chicago - US-007: Add privacy leak prevention tests for new match APIs and admin surfaces
+- Extended invite/match endpoint tests to harden privacy assertions for generation, facilitator queue, and decision APIs, including explicit checks that `email` is absent from code paths and response contracts.
+- Added negative regression checks for malformed/over-broad query shapes (`SELECT *`, `RETURNING *`) in match APIs to guard against accidental private-column expansion.
+- Strengthened admin UI test coverage to ensure match review rendering keeps private fields hidden and only displays privacy-safe profile headline output.
+- Updated `tests/privacy-leak-tests.md` with match-feature privacy regression artifacts and explicit test file references.
+- **Learnings:** Privacy regressions in this codebase are best prevented with source-contract tests that enforce both API payload shape and SQL projection discipline.
 ---

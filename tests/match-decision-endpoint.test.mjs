@@ -35,3 +35,9 @@ test('decision endpoint response is privacy-safe and excludes attendee private f
   assert.doesNotMatch(routeSource, /\bemail\b/);
   assert.doesNotMatch(routeSource, /help_needed|help_offered/);
 });
+
+test('decision endpoint uses explicit projection and forbids over-broad select patterns', () => {
+  assert.match(routeSource, /select id, run_id, status, reviewed_at, reviewed_by[\s\S]*from attendee_matches/);
+  assert.doesNotMatch(routeSource, /select\s+\*\s+from\s+attendee_matches/i);
+  assert.doesNotMatch(routeSource, /returning\s+\*/i);
+});

@@ -30,6 +30,9 @@ test('admin page keeps private fields hidden', () => {
   const source = read('app/admin/page.tsx');
 
   assert.doesNotMatch(source, /\.email\b/);
+  assert.doesNotMatch(source, /item\.attendee\.help_needed|item\.attendee\.help_offered/);
+  assert.doesNotMatch(source, /item\.matched_attendee\.help_needed|item\.matched_attendee\.help_offered/);
   assert.match(source, /profileHeadline\(profile/);
   assert.match(source, /Profile private/);
+  assert.match(source, /Email is never shown\./);
 });

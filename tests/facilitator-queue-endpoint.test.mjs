@@ -29,6 +29,14 @@ test('facilitator queue endpoint joins attendees and applies consent-aware publi
   assert.match(routeSource, /company: allowIdentity \? normalizeOptionalText\(row\.company\) : undefined/);
 });
 
-test('facilitator queue endpoint never selects or returns email fields', () => {
+test('facilitator queue endpoint never selects or returns private email fields', () => {
   assert.doesNotMatch(routeSource, /\bemail\b/);
+  assert.doesNotMatch(routeSource, /source\.[a-z_]*email|matched\.[a-z_]*email/i);
+});
+
+test('facilitator queue endpoint blocks malformed over-broad attendee selects', () => {
+  assert.doesNotMatch(routeSource, /select\s+\*\s+from\s+attendee_matches\s+am/i);
+  assert.doesNotMatch(routeSource, /select\s+\*\s+from\s+attendees\s+source/i);
+  assert.doesNotMatch(routeSource, /select\s+\*\s+from\s+attendees\s+matched/i);
+  assert.match(routeSource, /const data = rows\.map\(\(row\) => \(\{[\s\S]*attendee: toSafeProfile\([\s\S]*matched_attendee: toSafeProfile\(/);
 });

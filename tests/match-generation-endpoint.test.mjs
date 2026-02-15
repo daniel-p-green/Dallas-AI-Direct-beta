@@ -29,6 +29,13 @@ test('match generation endpoint stores score breakdown fields for audit reproduc
 
 test('match generation endpoint response is privacy-safe and does not include email', () => {
   assert.match(routeSource, /function toPublicCandidate/);
+  assert.match(routeSource, /safeMatches\.push\(\{[\s\S]*matched_attendee:[\s\S]*score_breakdown:/);
   assert.doesNotMatch(routeSource, /matched_attendee:\s*\{[^}]*email/s);
   assert.doesNotMatch(routeSource, /\bemail\b/);
+});
+
+test('match generation endpoint uses explicit attendee projection and rejects over-broad selects', () => {
+  assert.match(routeSource, /select[\s\S]*id,[\s\S]*name,[\s\S]*title,[\s\S]*company,[\s\S]*display_title_company,[\s\S]*ai_comfort_level,[\s\S]*help_needed,[\s\S]*help_offered,[\s\S]*created_at[\s\S]*from attendees/i);
+  assert.doesNotMatch(routeSource, /select\s+\*\s+from\s+attendees/i);
+  assert.doesNotMatch(routeSource, /\battendees\.[a-z_]*email\b/i);
 });
