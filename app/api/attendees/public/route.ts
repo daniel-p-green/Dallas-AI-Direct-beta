@@ -45,6 +45,7 @@ export async function GET(request: Request) {
             created_at
           from attendees_public
           where event_id = ${activeEvent.id}
+             or event_id is null
           order by created_at desc
           limit 200
         `

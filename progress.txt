@@ -29,6 +29,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - Documentation stories should ship with `node:test` contract assertions over required phrases/workflows so runtime-validation and PRD drift is caught by `npm test`.
 - When TypeScript libraries need runtime unit coverage under `node --test`, maintain a `.mjs` mirror module for direct test imports alongside the typed `.ts` source.
 - Event-session logic should be centralized in shared helpers (for example `lib/event-session.ts`) so signup and room APIs resolve active sessions consistently.
+- Backward-compatible data migrations should include both idempotent SQL backfills (`ON CONFLICT` + targeted `WHERE ... IS NULL`) and temporary API read fallbacks so rollout order does not hide legacy rows.
 - Abuse/Trust route protections should emit redacted structured logs plus mirrored inserts to `signup_risk_events` and `signup_moderation_queue` so suspicious traffic is auditable without raw PII.
 - Signup trust-decision logs use a versioned schema (`event: signup_trust_decision`, `schemaVersion`) with allow/flag/block outcomes so incident runbooks can parse decisions reliably across releases.
 - Deterministic 429 contracts should include explicit `X-RateLimit-*` and `Retry-After` headers derived from the same window snapshot used for enforcement.
@@ -321,4 +322,11 @@ Started: 2026-02-12 03:02 America/Chicago
 - Updated `plans/2026-02-15-remotion-readme-demo.md` to mark US-005 and final quality/evidence task completion.
 - Added `tests/remotion-quality-report.test.mjs` to enforce required quality-pass coverage + PR contract sections/command evidence.
 - **Learnings:** Final verification/evidence stories are more durable when quality-pass artifacts are checked in as docs and guarded by phrase-contract tests.
+---
+## 2026-02-15 11:26 America/Chicago - US-002: Implement backward-compatible data migration for existing attendee records
+- Added migration `db/migrations/202602151125_event_session_legacy_backfill.sql` to upsert deterministic default event (`legacy-default-session`), preserve an existing active session, and backfill `attendees.event_id` for legacy rows with idempotent rerun-safe guards.
+- Updated room-board API fallback in `app/api/attendees/public/route.ts` to include `event_id IS NULL` alongside active event filtering during rollout, preventing temporary legacy visibility gaps.
+- Added migration/compatibility tests in `tests/event-session-legacy-migration.test.mjs` and updated runtime contract assertion in `tests/event-session-runtime.test.mjs`.
+- Documented migration and rollback-safe assumptions in `docs/event-session-migration.md` and `docs/data-model.md`; updated event-session plan tracking.
+- **Learnings:** Event-scope rollouts are safer when SQL backfill idempotency and API fallback behavior are both explicitly tested.
 ---
