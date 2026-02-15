@@ -1,7 +1,7 @@
 # Execution Plan: Overnight hardening pack (P0/P1)
 
 ## Goal
-- Problem: Reproducibility and safety gaps (missing tracked core migration, unsafe linkedin URL handling, docs path/casing drift, Alpha/Beta naming inconsistency).
+- Problem: Reproducibility and safety gaps (missing tracked core migration, unsafe LinkedIn URL handling, docs path/casing drift, Alpha/Beta naming inconsistency).
 - Target outcome: Deterministic fresh setup, strict URL safety, accurate docs/runbooks, and intentional naming consistency with passing verification gates.
 
 ## Scope
