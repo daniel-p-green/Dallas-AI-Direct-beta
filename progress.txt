@@ -10,6 +10,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - Lightweight implementation tests can run with `node:test` and file-content assertions when no browser test harness is required.
 - `npm run typecheck` scans `tests/**/*.ts`; browser-spec TypeScript files require installed type dependencies (for example `@playwright/test`) to keep CI green.
 - Database changes are tracked as raw SQL migrations under `db/migrations/`, with schema integrity guarded by `node:test` assertions over migration SQL contracts.
+- Abuse/audit persistence should store hashed or masked identifiers (`*_hash`, redacted tokens) and avoid raw PII columns in auxiliary tables.
 
 ---
 ## 2026-02-12 03:03 America/Chicago - US-001: Create Geist-aligned brand guidelines document
@@ -62,4 +63,12 @@ Started: 2026-02-12 03:02 America/Chicago
 - Updated `docs/data-model.md` with documented columns for new match/audit tables and explicit privacy boundary requiring API-safe projections with no email exposure.
 - Added `tests/match-engine-schema.test.mjs` covering migration existence, table creation, FK integrity, scoring/status fields, index presence, and privacy-safe schema contract checks.
 - **Learnings:** SQL migration contracts can be enforced in this repo with deterministic source-level assertions, enabling schema validation without introducing a database harness.
+---
+## 2026-02-15 03:23 America/Chicago - US-001: Add abuse-trust schema for moderation queue and audit events
+- Added migration `db/migrations/202602150340_abuse_trust_schema.sql` creating `signup_risk_events` and `signup_moderation_queue` with risk score, triggered rules, queue status, audit timestamps, and moderation resolution fields.
+- Added indexes for queue triage and event correlation (`status`, `created_at`, `risk_score`, `request_fingerprint_hash`) to support filtering/sorting and lookup by hashed request fingerprint.
+- Enforced privacy-at-rest constraints by modeling only `email_hash` and `email_redacted` in abuse tables with masking checks to prevent raw email storage patterns.
+- Added `tests/abuse-trust-schema.test.mjs` to verify table contracts, indexes, and redaction/hash schema requirements.
+- Updated `docs/data-model.md` with abuse/trust table documentation and privacy rules.
+- **Learnings:** For security-focused schema stories, explicit migration-level check constraints plus source-contract tests provide strong guardrails before runtime code lands.
 ---
