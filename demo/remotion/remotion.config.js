@@ -1,4 +1,4 @@
-const {Config} = require('remotion');
+const {Config} = require('@remotion/cli/config');
 
 Config.setVideoImageFormat('jpeg');
 Config.setOverwriteOutput(true);

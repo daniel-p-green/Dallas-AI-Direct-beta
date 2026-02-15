@@ -44,6 +44,14 @@ test('root package scripts expose reproducible remotion commands', () => {
   );
 });
 
+test('demo/remotion workspace includes remotion CLI dependency and v4 config import', () => {
+  const workspacePackageJson = readJson(path.join(repoRoot, 'demo/remotion/package.json'));
+  const remotionConfig = fs.readFileSync(path.join(repoRoot, 'demo/remotion/remotion.config.js'), 'utf8');
+
+  assert.equal(workspacePackageJson.devDependencies['@remotion/cli'], '^4.0.422');
+  assert.match(remotionConfig, /@remotion\/cli\/config/);
+});
+
 test('demo/remotion README documents plan ownership and usage', () => {
   const readme = fs.readFileSync(path.join(repoRoot, 'demo/remotion/README.md'), 'utf8');
 
