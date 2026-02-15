@@ -15,7 +15,7 @@
 ## Tasks
 - [x] Add tracked executable migration for attendees/attendees_public/RLS/grants.
 - [x] Enforce strict linkedin_url scheme validation in signup API.
-- [x] Render linkedin links safely in room UI (non-clickable fallback for unsafe/missing values).
+- [x] Render LinkedIn links safely in room UI (non-clickable fallback for unsafe/missing values).
 - [x] Remove stale alpha path/casing + duplicated branch-policy drift in docs.
 - [x] Complete intentional Alpha->Beta naming updates in user-facing copy/tests/docs.
 
