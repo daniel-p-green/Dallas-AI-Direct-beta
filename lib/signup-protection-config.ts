@@ -10,6 +10,10 @@ export type SignupProtectionConfig = {
       malformedPayload: number;
       duplicateEmail: number;
     };
+    thresholds: {
+      velocityRequestCount: number;
+      malformedPayloadCount: number;
+    };
     suspiciousScoreThreshold: number;
   };
 };
@@ -23,6 +27,8 @@ const DEFAULTS = Object.freeze({
   SIGNUP_RISK_WEIGHT_VELOCITY: 3,
   SIGNUP_RISK_WEIGHT_MALFORMED_PAYLOAD: 2,
   SIGNUP_RISK_WEIGHT_DUPLICATE_EMAIL: 2,
+  SIGNUP_RISK_VELOCITY_REQUEST_THRESHOLD: 5,
+  SIGNUP_RISK_MALFORMED_PAYLOAD_THRESHOLD: 2,
   SIGNUP_RISK_SUSPICIOUS_SCORE_THRESHOLD: 5,
 });
 
@@ -70,6 +76,18 @@ export function createSignupProtectionConfigFromEnv(env: EnvRecord): SignupProte
     { min: 0, allowZero: true },
     errors,
   );
+  const velocityRequestCount = parseIntegerSetting(
+    env,
+    'SIGNUP_RISK_VELOCITY_REQUEST_THRESHOLD',
+    { min: 1 },
+    errors,
+  );
+  const malformedPayloadCount = parseIntegerSetting(
+    env,
+    'SIGNUP_RISK_MALFORMED_PAYLOAD_THRESHOLD',
+    { min: 1 },
+    errors,
+  );
   const suspiciousScoreThreshold = parseIntegerSetting(
     env,
     'SIGNUP_RISK_SUSPICIOUS_SCORE_THRESHOLD',
@@ -92,6 +110,10 @@ export function createSignupProtectionConfigFromEnv(env: EnvRecord): SignupProte
         velocity,
         malformedPayload,
         duplicateEmail,
+      },
+      thresholds: {
+        velocityRequestCount,
+        malformedPayloadCount,
       },
       suspiciousScoreThreshold,
     },
