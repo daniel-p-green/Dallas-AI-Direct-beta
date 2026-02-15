@@ -30,3 +30,5 @@ Add signup route protections (rate limit + risk heuristics), suspicious-event mo
 - US-007: Added `/api/moderation/queue` read/update API for suspicious signup review with status filtering + pagination, risk-event linkage (reason/timestamps), redacted-safe identifiers, and persistence-backed resolution updates.
 
 - US-008: Updated `docs/security.md`, `docs/runtime-validation.md`, and `ops/incident-response.md` with configurable rate-limit/heuristic controls, deterministic burst->429 validation, suspicious-event persistence checks, and operator runbook steps for redacted trust-log + moderation queue triage.
+
+- US-009: Executed final verification gates (`npm run typecheck`, `npm test`, `npm run build`) plus focused abuse integration suite (`node --test tests/signup-abuse-protections.test.mjs`), and captured PR evidence in `docs/us-009-validation-report.md` including 429 behavior, suspicious-event recording, and normal signup regression checks.

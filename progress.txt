@@ -5,6 +5,7 @@ Started: 2026-02-12 03:02 America/Chicago
 
 ## Codebase Patterns
 - Operational runbook stories should add node:test phrase-contract coverage across both `docs/` and `ops/` artifacts so runtime/incident-response guidance stays executable and drift-resistant.
+- Final verification stories should pair full gate runs (`typecheck`/`test`/`build`) with one focused story-critical suite to make acceptance evidence auditable in PR review.
 - Abuse-risk heuristics should be implemented in a shared pure scorer module (`lib/*`) and mirrored with `.mjs` for direct `node:test` imports when route handlers need deterministic scoring assertions.
 - This repository currently stores product and technical deliverables as Markdown-first artifacts under `docs/` and `tests/`.
 - Validation for documentation stories can be implemented as lightweight shell checks in `tests/` when no package scripts exist.
@@ -263,4 +264,11 @@ Started: 2026-02-12 03:02 America/Chicago
 - Added `tests/abuse-trust-docs-consistency.test.mjs` to enforce docs/runbook/runtime phrase-level contracts and plan-file presence.
 - Updated `plans/2026-02-15-abuse-trust-layer-v1.md` with US-008 execution note.
 - **Learnings:** For Abuse/Trust operations, docs should bind directly to concrete log schema/version and queue table names so on-call triage remains deterministic under incident pressure.
+---
+## 2026-02-15 07:55 America/Chicago - US-009: Execute final verification gates and capture evidence for PR contract
+- Ran required release gates: `npm run typecheck`, `npm test`, and `npm run build` (all pass).
+- Ran focused abuse integration suite `node --test tests/signup-abuse-protections.test.mjs` to capture explicit evidence for deterministic 429 behavior, suspicious-event/moderation recording, duplicate hardening, and normal signup regression stability.
+- Updated `docs/us-009-validation-report.md` with command evidence, highlighted abuse/normal-flow verification lines, and gate outcomes.
+- Updated `plans/2026-02-15-abuse-trust-layer-v1.md` with US-009 execution evidence note.
+- **Learnings:** Final verification stories should include both full-suite gate results and focused story-critical test evidence so PR reviewers can confirm acceptance criteria without replaying local runs.
 ---
