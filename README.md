@@ -261,7 +261,7 @@ References:
 
 ## Repository Navigation
 
-- `docs/` architecture, security, policy, runbooks
+- `docs/` architecture, security, policy, runbooks, and open TODOs (`docs/OPEN-TODO.md`)
 - `tests/` validation plans and smoke checks
 - `ops/` operational checklists and incident guidance
 - `prompts/v0/` deterministic UI build orchestration

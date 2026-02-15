@@ -9,6 +9,7 @@ Use this file to run the fastest safe path before live demo.
 3. `docs/security.md`
 4. `docs/runtime-validation.md`
 5. `docs/PRE-DEMO-COMMAND-CARD.md`
+6. `docs/OPEN-TODO.md`
 
 ## Run now
 
