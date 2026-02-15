@@ -11,13 +11,15 @@ and facilitator decisions are fully auditable.
 2. Run `ops/preflight.md` checks.
 3. Confirm UI queries `attendees_public` only for public surfaces.
 4. Submit one signup via QR flow.
-5. Confirm room board updates within 5 seconds.
-6. Confirm UI and payloads never expose email.
-7. Trigger deterministic match generation for a fixed attendee subset (same `topN`, same time anchor).
-8. Re-run generation and verify ordered scores/results are identical (reproducibility check).
-9. Open facilitator queue and approve one suggestion + reject one suggestion.
-10. Verify each decision creates exactly one immutable audit event with actor, action, and timestamp.
-11. Run mobile QR sanity validation and record evidence from `tests/ui-mobile-audit.md` and `tests/ui-mobile-audit.spec.ts`.
+5. Confirm organizer can create/activate an event via `POST /api/events` (`action: create|activate`) and validate one active session.
+6. Submit one signup and confirm row links to the active event (`attendees.event_id = active event id`).
+7. Confirm room board updates within 5 seconds and displays active session context.
+8. Confirm UI and payloads never expose email.
+9. Trigger deterministic match generation for a fixed attendee subset (same `topN`, same time anchor).
+10. Re-run generation and verify ordered scores/results are identical (reproducibility check).
+11. Open facilitator queue and approve one suggestion + reject one suggestion.
+12. Verify each decision creates exactly one immutable audit event with actor, action, and timestamp.
+13. Run mobile QR sanity validation and record evidence from `tests/ui-mobile-audit.md` and `tests/ui-mobile-audit.spec.ts`.
 
 ## Expected outputs
 
@@ -27,6 +29,9 @@ and facilitator decisions are fully auditable.
 - Duplicate email insert fails.
 - Out-of-range comfort level fails.
 - Injected HTML renders escaped text only.
+- Active event lookup returns one active session at a time.
+- Signup writes include `event_id` when an active event exists; legacy fallback remains `null` when no active event is configured.
+- Room board API returns event-scoped attendees plus scoped aggregate metrics.
 - Deterministic match replay returns identical ordered suggestion IDs and score values.
 - Facilitator decision API returns updated suggestion status without private attendee fields.
 - Audit table contains one appended event per approve/reject action and preserves prior events.

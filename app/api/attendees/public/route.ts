@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getDb, hasDatabaseUrl } from '../../../../lib/db/server';
+import { getActiveEventSession } from '../../../../lib/event-session';
 
 type PublicAttendeeRow = {
   name: string | null;
@@ -11,26 +12,56 @@ type PublicAttendeeRow = {
   created_at: string | null;
 };
 
-export async function GET() {
+export async function GET(request: Request) {
   if (!hasDatabaseUrl()) {
     return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
   }
 
   try {
     const db = getDb();
-    const rows = await db<PublicAttendeeRow[]>`
-      select
-        name,
-        title,
-        company,
-        linkedin_url,
-        ai_comfort_level,
-        help_offered,
-        created_at
-      from attendees_public
-      order by created_at desc
-      limit 200
-    `;
+    const url = new URL(request.url);
+    const eventSlug = url.searchParams.get('event');
+
+    const eventRows = eventSlug
+      ? await db<{ id: string; slug: string; name: string }[]>`
+          select id, slug, name
+          from public.events
+          where slug = ${eventSlug}
+          limit 1
+        `
+      : [];
+
+    const activeEvent = eventRows[0] ?? (await getActiveEventSession(db));
+
+    const rows = activeEvent
+      ? await db<PublicAttendeeRow[]>`
+          select
+            name,
+            title,
+            company,
+            linkedin_url,
+            ai_comfort_level,
+            help_offered,
+            created_at
+          from attendees_public
+          where event_id = ${activeEvent.id}
+          order by created_at desc
+          limit 200
+        `
+      : await db<PublicAttendeeRow[]>`
+          select
+            name,
+            title,
+            company,
+            linkedin_url,
+            ai_comfort_level,
+            help_offered,
+            created_at
+          from attendees_public
+          where event_id is null
+          order by created_at desc
+          limit 200
+        `;
 
     const data = rows.map((row) => ({
       name: typeof row.name === 'string' && row.name.trim().length > 0 ? row.name : 'Attendee',
@@ -47,7 +78,25 @@ export async function GET() {
       created_at: typeof row.created_at === 'string' ? row.created_at : new Date().toISOString()
     }));
 
-    return NextResponse.json({ data });
+    const attendeeCount = data.length;
+    const averageComfort =
+      attendeeCount > 0
+        ? Number((data.reduce((sum, attendee) => sum + attendee.ai_comfort_level, 0) / attendeeCount).toFixed(1))
+        : 0;
+    const highComfortPct =
+      attendeeCount > 0
+        ? Math.round((data.filter((attendee) => attendee.ai_comfort_level >= 4).length / attendeeCount) * 100)
+        : 0;
+
+    return NextResponse.json({
+      data,
+      event: activeEvent ? { id: activeEvent.id, slug: activeEvent.slug, name: activeEvent.name } : null,
+      aggregates: {
+        attendeeCount,
+        averageComfort,
+        highComfortPct
+      }
+    });
   } catch {
     return NextResponse.json({ error: 'Live room data unavailable' }, { status: 500 });
   }

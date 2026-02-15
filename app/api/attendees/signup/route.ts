@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb, hasDatabaseUrl } from '../../../../lib/db/server';
 import { getSignupProtectionConfig } from '../../../../lib/signup-protection-config';
+import { getActiveEventSession } from '../../../../lib/event-session';
 
 type SignupPayload = {
   name: string;
@@ -90,6 +91,7 @@ export async function POST(request: Request) {
     }
 
     const db = getDb();
+    const activeEvent = await getActiveEventSession(db);
 
     await db`
       insert into attendees (
@@ -104,7 +106,8 @@ export async function POST(request: Request) {
         help_offered,
         honeypot,
         other_help_needed,
-        other_help_offered
+        other_help_offered,
+        event_id
       )
       values (
         ${payload.name},
@@ -118,11 +121,12 @@ export async function POST(request: Request) {
         ${payload.help_offered},
         ${payload.honeypot},
         ${payload.other_help_needed},
-        ${payload.other_help_offered}
+        ${payload.other_help_offered},
+        ${activeEvent?.id ?? null}
       )
     `;
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, event: activeEvent ? { id: activeEvent.id, slug: activeEvent.slug, name: activeEvent.name } : null });
   } catch (error) {
     const duplicate =
       typeof error === 'object' &&
