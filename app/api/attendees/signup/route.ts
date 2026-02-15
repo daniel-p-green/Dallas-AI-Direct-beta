@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getDb, hasDatabaseUrl } from '../../../../lib/db/server';
+import { getSignupProtectionConfig } from '../../../../lib/signup-protection-config';
 
 type SignupPayload = {
   name: string;
@@ -71,6 +72,8 @@ export async function POST(request: Request) {
   if (!hasDatabaseUrl()) {
     return NextResponse.json({ error: 'Signup unavailable' }, { status: 503 });
   }
+
+  getSignupProtectionConfig();
 
   try {
     const body = await request.json();

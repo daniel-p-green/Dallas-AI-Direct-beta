@@ -21,6 +21,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - Privacy regression tests for API routes should assert both payload safety (no `email`) and query-shape safety (no `SELECT *` over sensitive tables) to catch leak regressions early.
 - Tool-specific demo workspaces should live under `demo/<tool>/` with root-level `npm --prefix` proxy scripts to keep app-root scripts stable.
 - Documentation stories should ship with `node:test` contract assertions over required phrases/workflows so runtime-validation and PRD drift is caught by `npm test`.
+- When TypeScript libraries need runtime unit coverage under `node --test`, maintain a `.mjs` mirror module for direct test imports alongside the typed `.ts` source.
 
 ---
 ## 2026-02-12 03:03 America/Chicago - US-001: Create Geist-aligned brand guidelines document
@@ -169,4 +170,11 @@ Started: 2026-02-12 03:02 America/Chicago
 - Updated `plans/2026-02-15-invite-match-engine.md` with US-009 completion checklist and validation artifact location.
 - Verified no unresolved `TODO`/`FIXME` markers in match-engine implementation/test/docs surfaces used by this feature.
 - **Learnings:** Release-gate stories in this repo should publish a dedicated docs validation report so verification evidence is auditable without replaying local terminal history.
+---
+## 2026-02-15 06:40 America/Chicago - US-002: Implement configurable signup protection settings
+- Added typed signup protection configuration module with one shared contract for rate-limit settings and risk-scoring weights/thresholds, sourced from env vars with deterministic defaults.
+- Wired signup API route to load the shared protection config at request handling time so invalid settings fail fast before processing signups.
+- Added runtime test module and unit tests for default parsing, override parsing, and explicit validation failures for invalid env values.
+- Updated abuse/trust plan checklist to mark config story completion.
+- **Learnings:** For env-driven app settings in this repo, centralizing parsing/validation in a single config module keeps future route protections consistent and safer to tune.
 ---
