@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getDb, hasDatabaseUrl } from '../../../../lib/db/server';
-import { getActiveEventSession } from '../../../../lib/event-session';
+import { resolveEventSessionForRequest } from '../../../../lib/event-session';
 
 type PublicAttendeeRow = {
   name: string | null;
@@ -22,16 +22,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const eventSlug = url.searchParams.get('event');
 
-    const eventRows = eventSlug
-      ? await db<{ id: string; slug: string; name: string }[]>`
-          select id, slug, name
-          from public.events
-          where slug = ${eventSlug}
-          limit 1
-        `
-      : [];
-
-    const activeEvent = eventRows[0] ?? (await getActiveEventSession(db));
+    const activeEvent = await resolveEventSessionForRequest(db, eventSlug);
 
     const rows = activeEvent
       ? await db<PublicAttendeeRow[]>`

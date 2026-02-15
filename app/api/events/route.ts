@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getDb, hasDatabaseUrl } from '../../../lib/db/server';
-import { getActiveEventSession } from '../../../lib/event-session';
+import { resolveActiveEventSession, setActiveEventSession } from '../../../lib/event-session';
 
 type EventRow = {
   id: string;
@@ -67,7 +67,7 @@ export async function GET() {
       limit 200
     `;
 
-    const active = rows.find((row) => row.is_active) ?? null;
+    const active = await resolveActiveEventSession(db);
 
     return NextResponse.json({
       active,
@@ -136,49 +136,21 @@ export async function POST(request: Request) {
         throw error;
       }
 
-      const active = await getActiveEventSession(db);
+      const active = await resolveActiveEventSession(db);
       return NextResponse.json({ ok: true, active });
     }
 
     if (body.action === 'activate') {
       const payload = body as ActivateEventPayload;
-      const eventId = typeof payload.event_id === 'string' ? payload.event_id.trim() : '';
-      const slug = typeof payload.slug === 'string' ? payload.slug.trim() : '';
+      const active = await setActiveEventSession(db, {
+        eventId: payload.event_id,
+        slug: payload.slug,
+      });
 
-      if (!eventId && !slug) {
-        return NextResponse.json({ error: 'event_id or slug is required.' }, { status: 400 });
+      if (!active) {
+        return NextResponse.json({ error: 'Event session not found.' }, { status: 404 });
       }
 
-      await db`begin`;
-      try {
-        await db`update public.events set is_active = false where is_active = true`;
-
-        const updated = eventId
-          ? await db<{ id: string }[]>`
-              update public.events
-              set is_active = true
-              where id = ${eventId}
-              returning id
-            `
-          : await db<{ id: string }[]>`
-              update public.events
-              set is_active = true
-              where slug = ${slug}
-              returning id
-            `;
-
-        if (updated.length === 0) {
-          await db`rollback`;
-          return NextResponse.json({ error: 'Event session not found.' }, { status: 404 });
-        }
-
-        await db`commit`;
-      } catch (error) {
-        await db`rollback`;
-        throw error;
-      }
-
-      const active = await getActiveEventSession(db);
       return NextResponse.json({ ok: true, active });
     }
 

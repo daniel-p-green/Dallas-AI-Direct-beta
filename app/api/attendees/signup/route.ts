@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { getDb, hasDatabaseUrl } from '../../../../lib/db/server';
 import { getSignupProtectionConfig } from '../../../../lib/signup-protection-config';
 import { computeSignupRiskSignal, type SignupRiskSignal } from '../../../../lib/signup-risk-scoring';
-import { getActiveEventSession } from '../../../../lib/event-session';
+import { resolveActiveEventSession } from '../../../../lib/event-session';
 
 type SignupPayload = {
   name: string;
@@ -387,7 +387,7 @@ export async function POST(request: Request) {
     }
 
     const db = getDb();
-    const activeEvent = await getActiveEventSession(db);
+    const activeEvent = await resolveActiveEventSession(db);
 
     await db`
       insert into attendees (

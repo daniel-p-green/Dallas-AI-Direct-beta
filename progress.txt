@@ -29,6 +29,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - Documentation stories should ship with `node:test` contract assertions over required phrases/workflows so runtime-validation and PRD drift is caught by `npm test`.
 - When TypeScript libraries need runtime unit coverage under `node --test`, maintain a `.mjs` mirror module for direct test imports alongside the typed `.ts` source.
 - Event-session logic should be centralized in shared helpers (for example `lib/event-session.ts`) so signup and room APIs resolve active sessions consistently.
+- Active event resolution should prefer explicit `is_active=true` rows, then deterministically fall back to the default event slug (`legacy-default-session`) to keep signup/room flows stable during organizer gaps.
 - Backward-compatible data migrations should include both idempotent SQL backfills (`ON CONFLICT` + targeted `WHERE ... IS NULL`) and temporary API read fallbacks so rollout order does not hide legacy rows.
 - Abuse/Trust route protections should emit redacted structured logs plus mirrored inserts to `signup_risk_events` and `signup_moderation_queue` so suspicious traffic is auditable without raw PII.
 - Signup trust-decision logs use a versioned schema (`event: signup_trust_decision`, `schemaVersion`) with allow/flag/block outcomes so incident runbooks can parse decisions reliably across releases.
@@ -329,4 +330,12 @@ Started: 2026-02-12 03:02 America/Chicago
 - Added migration/compatibility tests in `tests/event-session-legacy-migration.test.mjs` and updated runtime contract assertion in `tests/event-session-runtime.test.mjs`.
 - Documented migration and rollback-safe assumptions in `docs/event-session-migration.md` and `docs/data-model.md`; updated event-session plan tracking.
 - **Learnings:** Event-scope rollouts are safer when SQL backfill idempotency and API fallback behavior are both explicitly tested.
+---
+## 2026-02-15 11:40 America/Chicago - US-003: Add active event-session selection service
+- Expanded `lib/event-session.ts` into a shared active-session service with deterministic resolution (`resolveActiveEventSession`) and explicit fallback to `legacy-default-session` (plus first-event fallback when default is absent).
+- Added shared request-scoped resolver (`resolveEventSessionForRequest`) and single-active update helper (`setActiveEventSession`) so activation invariants live in one place.
+- Updated signup, room-board, and events APIs to consume shared helpers instead of duplicating event-selection/activation logic.
+- Added `tests/event-session-selection-service.test.mjs` and refreshed `tests/event-session-runtime.test.mjs` assertions to cover fallback resolution, single-active enforcement helper usage, and endpoint integration points.
+- Updated `plans/2026-02-15-event-session-mode.md` story tracking for US-003 service completion details.
+- **Learnings:** Active-session write invariants and fallback precedence should be encoded in shared service helpers, then referenced by all event-aware routes.
 ---

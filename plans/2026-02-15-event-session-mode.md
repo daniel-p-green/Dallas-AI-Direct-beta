@@ -16,7 +16,7 @@ Add multi-event support with active session selection, event-scoped signup/room 
 ## Story tracking
 - [x] US-001: Add event-session schema and attendee-to-event linkage
 - [x] US-002: Implement backward-compatible data migration for existing attendee records
-- [x] US-003: Active-event selection service/defaults
+- [x] US-003: Active-event selection service/defaults (shared resolver + single-active setter)
 - [x] US-004: Signup event association
 - [x] US-005: Room board event filtering + aggregates
 - [ ] US-006+: Remaining organizer/session UX and docs stories
