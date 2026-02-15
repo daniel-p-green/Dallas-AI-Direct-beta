@@ -305,6 +305,114 @@ a {
   background: #fff;
 }
 
+.adminSection {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: var(--space-4);
+  background: #fff;
+}
+
+.adminSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.adminSectionHeader h3,
+.adminSection h3 {
+  margin: 0;
+}
+
+.adminEventList {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.adminEventCard {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: var(--space-3);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.adminEventCard p {
+  margin: 0;
+}
+
+.adminQueue {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.adminSuggestionCard {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  padding: var(--space-4);
+  display: grid;
+  gap: var(--space-3);
+}
+
+.adminSuggestionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.adminPairingGrid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.adminPairingGrid p {
+  margin: 0;
+}
+
+.adminScoreGrid {
+  margin: 0;
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.adminScoreGrid div {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: var(--space-2);
+}
+
+.adminScoreGrid dt {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.adminScoreGrid dd {
+  margin: var(--space-1) 0 0;
+  font-weight: 600;
+}
+
+.adminError,
+.adminSuccess {
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.adminError {
+  color: #991b1b;
+  background: #fef2f2;
+}
+
+.adminSuccess {
+  color: var(--success);
+  background: #f0fdf4;
+}
+
 .footer {
   padding: var(--space-4) 0 var(--space-8);
   font-size: 14px;
@@ -330,6 +438,11 @@ a {
   }
 
   .attendeeRow {
+    grid-template-columns: 1fr;
+  }
+
+  .adminPairingGrid,
+  .adminScoreGrid {
     grid-template-columns: 1fr;
   }
 

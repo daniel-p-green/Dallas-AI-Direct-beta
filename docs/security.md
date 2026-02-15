@@ -20,7 +20,70 @@
 - Unique index on normalized email.
 - Honeypot field must remain empty.
 - Server-side validation for schema and range checks.
-- Optional throttling by IP and user-agent.
+- Configurable route-level throttling and risk scoring for signup traffic (IP/user-agent fingerprint + heuristic weights/thresholds).
+- Suspicious attempts are mirrored to moderation/audit tables with redacted structured logs.
+- Duplicate-email conflict telemetry is policy-controlled via `SIGNUP_RECORD_DUPLICATE_ATTEMPTS` to keep UX stable while allowing abuse signal tuning.
+
+### Configurable signup rate limits
+
+Signup throttling is controlled by env-backed settings loaded via `lib/signup-protection-config.ts`:
+
+- `SIGNUP_RATE_LIMIT_WINDOW_MS`
+- `SIGNUP_RATE_LIMIT_MAX_REQUESTS`
+
+Behavior contract:
+- limits are computed per request fingerprint hash
+- burst traffic over the configured max returns `429`
+- responses include deterministic `X-RateLimit-*` and `Retry-After` headers derived from the same snapshot used for enforcement
+
+### Heuristic risk scoring factors
+
+Risk scoring combines weighted rule triggers. Current factors:
+
+- `honeypot_present`
+- `velocity_exceeded`
+- `malformed_payload_frequency`
+- `duplicate_email_conflict`
+
+Scoring and thresholds are configurable via:
+- `SIGNUP_RISK_THRESHOLD`
+- `SIGNUP_RISK_WEIGHT_HONEYPOT`
+- `SIGNUP_RISK_WEIGHT_VELOCITY`
+- `SIGNUP_RISK_WEIGHT_MALFORMED_PAYLOAD`
+- `SIGNUP_RISK_WEIGHT_DUPLICATE`
+- `SIGNUP_VELOCITY_REQUEST_COUNT`
+- `SIGNUP_MALFORMED_PAYLOAD_COUNT`
+
+### Moderation queue workflow
+
+When a signup is flagged or blocked:
+1. Write a `signup_risk_events` row with score, trigger rules, request fingerprint hash, and redacted/hash identifiers.
+2. Enqueue a linked `signup_moderation_queue` row (status `suggested`) for operator review.
+3. Emit a `signup_trust_decision` structured log event (`allow`/`flag`/`block`) for incident timelines.
+4. Operators triage via `GET /api/moderation/queue` and resolve via `PATCH /api/moderation/queue`.
+
+### Signup trust decision structured log schema (v1)
+
+Incident response and abuse investigations rely on a stable JSON event emitted as `signup_trust_decision` with `schemaVersion: "2026-02-15.v1"`.
+
+Required keys:
+
+| Key | Description |
+| --- | --- |
+| `event` | Constant `signup_trust_decision` |
+| `schemaVersion` | Constant `2026-02-15.v1` |
+| `route` | Constant `/api/attendees/signup` |
+| `decision` | `allow`, `flag`, or `block` |
+| `routeOutcome` | Outcome reason (`signup_created`, `duplicate_email_conflict`, `rate_limit_exceeded`, etc.) |
+| `requestFingerprintHash` | SHA-256 hash of fingerprint tuple (IP header, user-agent, normalized email fallback) |
+| `emailHash` / `emailRedacted` | Hashed and masked email identifiers only (no raw email) |
+| `ipHash` / `userAgentHash` | Hashed request network/user-agent identifiers |
+| `riskScore` | Numeric risk score from scoring heuristics |
+| `triggeredRules` | Array of rule IDs contributing to score |
+| `malformedPayloadCount` | Malformed payload count within active window |
+| `metadata` | Additional non-PII context for incident triage |
+
+Redaction policy: raw `email` and raw `ip` must never appear in structured signup trust logs.
 
 ## Alpha password gate
 

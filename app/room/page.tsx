@@ -12,6 +12,19 @@ type Attendee = {
   created_at: string;
 };
 
+type EventSummary = {
+  id: string;
+  slug: string;
+  name: string;
+} | null;
+
+type RoomAggregates = {
+  attendeeCount: number;
+  averageComfort: number;
+  highComfortPct: number;
+  comfortDistribution?: Record<`level${1 | 2 | 3 | 4 | 5}`, number>;
+};
+
 const seed: Attendee[] = [
   {
     name: 'Attendee One',
@@ -86,6 +99,16 @@ export default function RoomPage() {
   const [loadMessage, setLoadMessage] = useState<string | null>(null);
   const [lastPollAt, setLastPollAt] = useState(Date.now());
   const [mounted, setMounted] = useState(false);
+  const [activeEvent, setActiveEvent] = useState<EventSummary>(null);
+  const [aggregates, setAggregates] = useState<RoomAggregates>({
+    attendeeCount: fallbackAttendees.length,
+    averageComfort: Number(
+      (fallbackAttendees.reduce((n, attendee) => n + attendee.ai_comfort_level, 0) / fallbackAttendees.length).toFixed(1)
+    ),
+    highComfortPct: Math.round(
+      (fallbackAttendees.filter((attendee) => attendee.ai_comfort_level >= 4).length / fallbackAttendees.length) * 100
+    )
+  });
 
   useEffect(() => {
     let isActive = true;
@@ -101,18 +124,50 @@ export default function RoomPage() {
             setDataMode('fallback');
             setLoadMessage('Live room data is unavailable. Showing demo seed data.');
             setAttendees(fallbackAttendees);
+            setActiveEvent(null);
+            setAggregates({
+              attendeeCount: fallbackAttendees.length,
+              averageComfort: Number(
+                (
+                  fallbackAttendees.reduce((n, attendee) => n + attendee.ai_comfort_level, 0) / fallbackAttendees.length
+                ).toFixed(1)
+              ),
+              highComfortPct: Math.round(
+                (fallbackAttendees.filter((attendee) => attendee.ai_comfort_level >= 4).length /
+                  fallbackAttendees.length) *
+                  100
+              )
+            });
             setLastPollAt(Date.now());
           }
           return;
         }
 
-        const result = (await response.json()) as { data?: Attendee[] };
+        const result = (await response.json()) as {
+          data?: Attendee[];
+          event?: EventSummary;
+          aggregates?: RoomAggregates;
+        };
         const data = Array.isArray(result.data) ? result.data : [];
 
         if (isActive) {
           setDataMode('live');
           setLoadMessage(null);
           setAttendees(data);
+          setActiveEvent(result.event ?? null);
+          setAggregates(
+            result.aggregates ?? {
+              attendeeCount: data.length,
+              averageComfort:
+                data.length > 0
+                  ? Number((data.reduce((n, attendee) => n + attendee.ai_comfort_level, 0) / data.length).toFixed(1))
+                  : 0,
+              highComfortPct:
+                data.length > 0
+                  ? Math.round((data.filter((attendee) => attendee.ai_comfort_level >= 4).length / data.length) * 100)
+                  : 0
+            }
+          );
           setLastPollAt(Date.now());
         }
       } catch {
@@ -120,6 +175,19 @@ export default function RoomPage() {
           setDataMode('fallback');
           setLoadMessage('Live room data is unavailable. Showing demo seed data.');
           setAttendees(fallbackAttendees);
+          setActiveEvent(null);
+          setAggregates({
+            attendeeCount: fallbackAttendees.length,
+            averageComfort: Number(
+              (
+                fallbackAttendees.reduce((n, attendee) => n + attendee.ai_comfort_level, 0) / fallbackAttendees.length
+              ).toFixed(1)
+            ),
+            highComfortPct: Math.round(
+              (fallbackAttendees.filter((attendee) => attendee.ai_comfort_level >= 4).length / fallbackAttendees.length) *
+                100
+            )
+          });
           setLastPollAt(Date.now());
         }
       }
@@ -135,11 +203,6 @@ export default function RoomPage() {
   }, [fallbackAttendees]);
 
   const updatedAgo = Math.max(1, Math.floor((Date.now() - lastPollAt) / 1000));
-  const attendeeCount = attendees.length;
-  const avgComfort =
-    attendeeCount > 0 ? (attendees.reduce((n, a) => n + a.ai_comfort_level, 0) / attendeeCount).toFixed(1) : '0.0';
-  const highPct =
-    attendeeCount > 0 ? Math.round((attendees.filter((a) => a.ai_comfort_level >= 4).length / attendeeCount) * 100) : 0;
 
   return (
     <section className="pageCard stack">
@@ -154,21 +217,22 @@ export default function RoomPage() {
       </div>
       <p className="muted" style={{ marginTop: -8 }}>
         Data mode: {dataMode === 'live' ? 'Live attendees_public feed' : 'Fallback demo seed data'}
+        {activeEvent ? ` · Session: ${activeEvent.name}` : ' · Session: Legacy (no active event)'}
       </p>
       {loadMessage ? <p className="helper">{loadMessage}</p> : null}
 
       <div className="metrics">
         <div className="metricCard">
           <p className="metricLabel">Total attendees</p>
-          <p className="metricValue">{attendeeCount}</p>
+          <p className="metricValue">{aggregates.attendeeCount}</p>
         </div>
         <div className="metricCard">
           <p className="metricLabel">Average comfort</p>
-          <p className="metricValue">{avgComfort}</p>
+          <p className="metricValue">{aggregates.averageComfort.toFixed(1)}</p>
         </div>
         <div className="metricCard">
           <p className="metricLabel">Comfort 4-5</p>
-          <p className="metricValue">{highPct}%</p>
+          <p className="metricValue">{aggregates.highComfortPct}%</p>
         </div>
       </div>
 

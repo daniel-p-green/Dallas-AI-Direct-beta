@@ -13,37 +13,51 @@ Reference implementation for a governed, community-owned attendee directory buil
 
 ## Executive Summary
 
-Dallas AI Direct Alpha addresses a concrete operating constraint: dependency on paid third-party attendee directory access. Dallas AI has 10,000+ members, and at 10% paid participation with $3 to $5 annual pricing, this represents an estimated $36,000 to $60,000 annualized cost exposure. This project demonstrates a lower-cost, governed alternative that preserves participant trust. The architecture enforces access at the database boundary with Postgres RLS and a projection view (`attendees_public`) that excludes email from public reads. The design uses explicit consent for optional profile visibility and keeps sensitive data private by default. The live demo proves a simple hero moment: QR signup in about 30 seconds, room board update within 5 seconds, and no public email exposure. This repository demonstrates a repeatable AI Infrastructure Sprint pattern that delivers a working artifact in hours, not a slide deck.
+Dallas AI Direct Beta is a free, open-source attendee directory for live events, built with privacy and governance at the database boundary. It is not a paid membership product. The architecture enforces access with Postgres RLS and a projection view (`attendees_public`) that excludes email from public reads. The design uses explicit consent for optional profile visibility and keeps sensitive data private by default. The live demo proves a simple hero moment: QR signup in about 30 seconds, room board update within 5 seconds, and no public email exposure. This repository demonstrates a repeatable AI Infrastructure Sprint pattern that delivers a working artifact in hours, not a slide deck.
 
 ---
 
-## Business Constraint and ROI
+## Product Clarification
 
-### Constraint
-Teams rely on third-party directory access to understand event participation in real time.
+Dallas AI Direct Beta is free and open source software for event attendee visibility. It is not a paid subscription product.
 
-### Economic impact
+## Business Constraint
 
-| Input | Value |
-| --- | ---: |
-| Member base | 10,000+ |
-| Paying share assumption | 10% |
-| Price per paying member (annual) | $3 to $5 |
-| Annualized exposure | $36,000 to $60,000 |
+Teams need real-time attendee visibility during events without exposing private attendee data and without relying on opaque third-party access controls.
 
-### What changed economically?
+## Practical value delivered
 
-- Replaced recurring access dependency with owned infrastructure.
-- Reduced exposure to vendor policy and pricing changes.
-- Improved governance over sensitive attendee data.
-- Enabled faster iteration under direct team control.
-- Created a reusable sprint model for future revenue workflows.
+- Replace dependency risk with owned, auditable infrastructure.
+- Keep email private by design, enforced at the DB boundary.
+- Preserve optional profile visibility through explicit attendee consent.
+- Improve operator confidence with deterministic pre-demo validation gates.
 
 ---
 
 ## Hero Moment
 
 Attendees scan a QR code, submit in about 30 seconds, and appear on the room board within 5 seconds. The board reads only public-safe fields. Email never appears on public surfaces. Database boundary controls enforce the policy even if UI behavior changes.
+
+## README Demo (Remotion)
+
+A lightweight Remotion demo visualizes the Dallas AI Direct flow:
+1. QR signup
+2. Room board update
+3. Privacy-safe public view (no email exposure)
+
+[![Dallas AI Direct Remotion demo poster](public/demo/dallas-ai-direct-remotion-demo-poster.png)](public/demo/dallas-ai-direct-remotion-demo.mp4)
+
+Caption: Dallas AI Direct flow — QR signup → room board update → privacy-safe public view (attendee email is never shown publicly).
+
+To regenerate assets from repo root:
+
+```bash
+npm run demo:remotion:generate
+# or run render/still/check separately
+npm run demo:remotion:render
+npm run demo:remotion:still
+npm run demo:remotion:check
+```
 
 ---
 
@@ -264,8 +278,7 @@ References:
 - `docs/` architecture, security, policy, runbooks, and open TODOs (`docs/OPEN-TODO.md`)
 - `tests/` validation plans and smoke checks
 - `ops/` operational checklists and incident guidance
-- `prompts/v0/` deterministic UI build orchestration
-- `v0-build/` isolated non-code context + brand pack + target workspace for v0-generated build output
+- `prompts/` implementation notes for maintainers (product-focused only)
 
 ## Design System
 

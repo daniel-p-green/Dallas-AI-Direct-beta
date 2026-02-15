@@ -13,7 +13,19 @@ Add multi-event support with active session selection, event-scoped signup/room 
 7. Docs updates for migration, runtime validation, and operations.
 8. Final verification evidence (typecheck/test/build).
 
+## Story tracking
+- [x] US-001: Add event-session schema and attendee-to-event linkage
+- [x] US-002: Implement backward-compatible data migration for existing attendee records
+- [x] US-003: Active-event selection service/defaults (shared resolver + single-active setter)
+- [x] US-004: Signup event association + active check-in window enforcement (`403 CHECK_IN_WINDOW_CLOSED`)
+- [x] US-005: Room board event filtering + aggregates (event-only active-session query + comfort distribution aggregate)
+- [x] US-006: Organizer admin UI for create-session, active-session switching, and check-in window validation/errors
+- [x] US-007: Ensure default active-event fallback keeps existing flows functional
+- [x] US-008: Docs updates for PRD/use-cases/user-stories/runtime-validation + migration runbook guidance
+- [x] US-009: Final verification evidence (typecheck/test/build)
+
 ## Notes
 - Preserve current flows through a default active event fallback.
 - Keep privacy boundary unchanged (`attendees_public` or event-safe projection).
 - Ensure event filter logic is deterministic and test covered.
+- US-009 release evidence captured in `docs/us-009-event-session-validation-report.md` (typecheck/test/build + focused event-session integration suite).
