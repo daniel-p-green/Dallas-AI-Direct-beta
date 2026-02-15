@@ -139,3 +139,9 @@ Started: 2026-02-12 03:02 America/Chicago
 - Updated `tests/privacy-leak-tests.md` with match-feature privacy regression artifacts and explicit test file references.
 - **Learnings:** Privacy regressions in this codebase are best prevented with source-contract tests that enforce both API payload shape and SQL projection discipline.
 ---
+## 2026-02-15 04:24 America/Chicago - US-001: Add abuse-trust schema for moderation queue and audit events (retry hardening)
+- Hardened `tests/abuse-trust-schema.test.mjs` to assert index column ordering for moderation queue filtering and risk-event correlation paths.
+- Added stricter schema contract check to prevent accidental bare `email` columns in abuse-trust tables while allowing only `email_hash` / `email_redacted`.
+- Revalidated migration contract expectations for audit timestamps and abuse-risk fields.
+- **Learnings:** For schema-heavy stories, asserting index definitions (including sort direction and column order) prevents subtle regressions that simple index-name checks miss.
+---

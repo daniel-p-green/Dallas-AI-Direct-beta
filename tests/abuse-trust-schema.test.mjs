@@ -35,16 +35,18 @@ test('migration includes risk score, trigger reasons, queue status, and audit ti
 test('migration supports event correlation lookups and moderation queue filtering indexes', () => {
   const sql = readMigration();
 
-  assert.match(sql, /create index if not exists signup_risk_events_request_fingerprint_created_at_idx/i);
-  assert.match(sql, /create index if not exists signup_moderation_queue_status_created_at_idx/i);
-  assert.match(sql, /create index if not exists signup_moderation_queue_status_risk_score_created_at_idx/i);
-  assert.match(sql, /create index if not exists signup_moderation_queue_request_fingerprint_created_at_idx/i);
+  assert.match(sql, /create index if not exists signup_risk_events_request_fingerprint_created_at_idx\s+on public\.signup_risk_events \(request_fingerprint_hash, created_at desc\)/i);
+  assert.match(sql, /create index if not exists signup_risk_events_risk_score_created_at_idx\s+on public\.signup_risk_events \(risk_score desc, created_at desc\)/i);
+  assert.match(sql, /create index if not exists signup_moderation_queue_status_created_at_idx\s+on public\.signup_moderation_queue \(status, created_at desc\)/i);
+  assert.match(sql, /create index if not exists signup_moderation_queue_status_risk_score_created_at_idx\s+on public\.signup_moderation_queue \(status, risk_score desc, created_at desc\)/i);
+  assert.match(sql, /create index if not exists signup_moderation_queue_request_fingerprint_created_at_idx\s+on public\.signup_moderation_queue \(request_fingerprint_hash, created_at desc\)/i);
 });
 
 test('migration avoids raw email fields and enforces redacted/hash alternatives', () => {
   const sql = readMigration();
 
   assert.doesNotMatch(sql, /\bemail\s+text\b/i);
+  assert.doesNotMatch(sql, /\bemail\b(?!_(hash|redacted))/i);
   assert.match(sql, /email_hash text/i);
   assert.match(sql, /email_redacted text/i);
   assert.match(sql, /constraint signup_risk_events_redacted_email_mask check/i);
