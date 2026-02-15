@@ -12,18 +12,17 @@ This list captures gaps between current implementation and documented intent.
 - Personas, user stories, and use cases now cover new member, regular member, organizer, ops/security, and maintainer roles.
 
 ### Gaps to close
-- Docs mention abuse throttling strategy, but route-level rate limiting is not yet implemented.
 - Data model includes `other_help_needed` / `other_help_offered`, but signup UI currently submits these as `null` only (no input path).
-- `/admin` page is demo UI only; controls are non-functional and can be misread as real operational toggles.
+- `/admin` page remains lightweight and should continue to be documented as non-privileged facilitator tooling.
 - Pre-demo docs rely on manual SQL/runbook steps; there is no single bootstrap script for repeatable environment setup.
 
 ---
 
 ## P0 (must close for reliable beta handoff)
 
-- [ ] Implement minimal route-level throttling for `POST /api/attendees/signup`.
+- [x] Implement minimal route-level throttling for `POST /api/attendees/signup`.
   - **Owner:** backend/ops
-  - **Acceptance:** repeated burst requests are limited with clear 429 response behavior and documented fallback.
+  - **Status:** shipped in `app/api/attendees/signup/route.ts` with configurable window/max limits and deterministic `429` responses.
 
 - [ ] Clarify `/admin` posture in docs and UI (demo-only vs operational).
   - **Owner:** product/docs
@@ -49,7 +48,8 @@ This list captures gaps between current implementation and documented intent.
 
 ## P2 (polish and operations)
 
-- [ ] Add structured logging guidance and sample redacted event format for runtime incidents.
+- [x] Add structured logging guidance and sample redacted event format for runtime incidents.
+  - **Status:** redacted `signup_security` event format documented and emitted by signup abuse path (hashes + masked email only).
 - [ ] Add maintainer on-call/demo checklist for live event day.
 - [ ] Add lightweight changelog/release note template for community maintainers.
 

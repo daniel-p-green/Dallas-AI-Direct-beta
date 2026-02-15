@@ -4,12 +4,34 @@ Task: Project: Dallas AI Direct Alpha. Task: Create a minimal brand implementati
 Started: 2026-02-12 03:02 America/Chicago
 
 ## Codebase Patterns
+- Operational runbook stories should add node:test phrase-contract coverage across both `docs/` and `ops/` artifacts so runtime/incident-response guidance stays executable and drift-resistant.
+- Final verification stories should pair full gate runs (`typecheck`/`test`/`build`) with one focused story-critical suite to make acceptance evidence auditable in PR review.
+- Abuse-risk heuristics should be implemented in a shared pure scorer module (`lib/*`) and mirrored with `.mjs` for direct `node:test` imports when route handlers need deterministic scoring assertions.
 - This repository currently stores product and technical deliverables as Markdown-first artifacts under `docs/` and `tests/`.
 - Validation for documentation stories can be implemented as lightweight shell checks in `tests/` when no package scripts exist.
 - UI implementation now uses Next.js App Router under `app/` with route-local `page.tsx` files and shared shell in `app/layout.tsx`.
 - Lightweight implementation tests can run with `node:test` and file-content assertions when no browser test harness is required.
 - `npm run typecheck` scans `tests/**/*.ts`; browser-spec TypeScript files require installed type dependencies (for example `@playwright/test`) to keep CI green.
 - Database changes are tracked as raw SQL migrations under `db/migrations/`, with schema integrity guarded by `node:test` assertions over migration SQL contracts.
+- Abuse/audit persistence should store hashed or masked identifiers (`*_hash`, redacted tokens) and avoid raw PII columns in auxiliary tables.
+- Migration contract tests should assert indexed column order (not only index names) to lock intended query paths for queue and ranking endpoints.
+- Deterministic ranking logic should live in pure `lib/*.mjs` utilities with explicit weight constants and fixed `now` injection for reproducible tests.
+- For write-heavy API routes using `postgres` tagged templates, explicit `begin`/`commit`/`rollback` statements provide straightforward transactional control that keeps TypeScript checks simple.
+- Queue/list APIs should enforce deterministic ordering with `ORDER BY created_at DESC, id ASC` to keep pagination stable across repeated facilitator fetches.
+- Decision/update APIs should lock target rows with `SELECT ... FOR UPDATE` and gate transitions (`status='suggested'`) before writing immutable audit events.
+- Facilitator admin actions should use optimistic queue removal plus background re-fetch to keep UI responsive without full page reloads.
+- Backward-compatible Postgres migrations should guard additive column changes with `information_schema.columns` checks to keep reruns safe across partially migrated environments.
+- Privacy regression tests for API routes should assert both payload safety (no `email`) and query-shape safety (no `SELECT *` over sensitive tables) to catch leak regressions early.
+- Tool-specific demo workspaces should live under `demo/<tool>/` with root-level `npm --prefix` proxy scripts to keep app-root scripts stable.
+- For nested demo workspaces, root proxy scripts should include an explicit install step so local CLIs (for example `remotion`) are resolvable in fresh environments.
+- Documentation stories should ship with `node:test` contract assertions over required phrases/workflows so runtime-validation and PRD drift is caught by `npm test`.
+- When TypeScript libraries need runtime unit coverage under `node --test`, maintain a `.mjs` mirror module for direct test imports alongside the typed `.ts` source.
+- Event-session logic should be centralized in shared helpers (for example `lib/event-session.ts`) so signup and room APIs resolve active sessions consistently.
+- Abuse/Trust route protections should emit redacted structured logs plus mirrored inserts to `signup_risk_events` and `signup_moderation_queue` so suspicious traffic is auditable without raw PII.
+- Signup trust-decision logs use a versioned schema (`event: signup_trust_decision`, `schemaVersion`) with allow/flag/block outcomes so incident runbooks can parse decisions reliably across releases.
+- Deterministic 429 contracts should include explicit `X-RateLimit-*` and `Retry-After` headers derived from the same window snapshot used for enforcement.
+- Signup abuse telemetry switches should be modeled in the shared env config parser (TypeScript + `.mjs` mirror) so route behavior and test imports stay in lockstep.
+- Moderation review endpoints should join queue rows with linked risk-event rows and return only redacted/hash identifiers to keep triage context complete without exposing PII.
 
 ---
 ## 2026-02-12 03:03 America/Chicago - US-001: Create Geist-aligned brand guidelines document
@@ -62,4 +84,191 @@ Started: 2026-02-12 03:02 America/Chicago
 - Updated `docs/data-model.md` with documented columns for new match/audit tables and explicit privacy boundary requiring API-safe projections with no email exposure.
 - Added `tests/match-engine-schema.test.mjs` covering migration existence, table creation, FK integrity, scoring/status fields, index presence, and privacy-safe schema contract checks.
 - **Learnings:** SQL migration contracts can be enforced in this repo with deterministic source-level assertions, enabling schema validation without introducing a database harness.
+---
+## 2026-02-15 03:23 America/Chicago - US-001: Add abuse-trust schema for moderation queue and audit events
+- Added migration `db/migrations/202602150340_abuse_trust_schema.sql` creating `signup_risk_events` and `signup_moderation_queue` with risk score, triggered rules, queue status, audit timestamps, and moderation resolution fields.
+- Added indexes for queue triage and event correlation (`status`, `created_at`, `risk_score`, `request_fingerprint_hash`) to support filtering/sorting and lookup by hashed request fingerprint.
+- Enforced privacy-at-rest constraints by modeling only `email_hash` and `email_redacted` in abuse tables with masking checks to prevent raw email storage patterns.
+- Added `tests/abuse-trust-schema.test.mjs` to verify table contracts, indexes, and redaction/hash schema requirements.
+- Updated `docs/data-model.md` with abuse/trust table documentation and privacy rules.
+- **Learnings:** For security-focused schema stories, explicit migration-level check constraints plus source-contract tests provide strong guardrails before runtime code lands.
+---
+## 2026-02-15 03:30 America/Chicago - US-001: Harden match schema contract coverage
+- Strengthened `tests/match-engine-schema.test.mjs` to assert deterministic-run metadata columns (`algorithm_version`, `scoring_weights`, `run_metadata`) and auditable timestamp coverage across runs/matches/decision events.
+- Extended index assertions to verify key facilitator queue/top-N index column orderings on `status`, `created_at`, `run_id`, and `attendee_id` paths.
+- Re-ran verification gates to confirm schema contract checks stay green.
+- **Learnings:** Contract tests should validate not just index names but indexed column ordering for predictable query behavior.
+---
+## 2026-02-15 03:34 America/Chicago - US-002: Implement deterministic match scoring service
+- Added pure scoring module `lib/match-scoring.mjs` with explicit weights, normalized topic overlap, comfort proximity, consent-aware visibility scoring, recency weighting, and deterministic tie-break ordering.
+- Exposed reusable helpers (`calculateOverlapScore`, `calculateComfortProximityScore`, `calculateConsentVisibilityScore`, `calculateRecencyScore`, `calculateMatchScore`, `rankMatches`) for route handler integration.
+- Added `tests/match-scoring.test.mjs` covering deterministic repeatability, full formula contribution checks, and enforced tie-break behavior (`total_score desc`, `overlap desc`, `candidate id asc`).
+- **Learnings:** Injecting a fixed `now` timestamp into pure ranking helpers is essential for stable deterministic scoring tests when recency contributes to totals.
+---
+## 2026-02-15 03:49 America/Chicago - US-003: Add backend endpoint to generate and persist top-N attendee matches
+- Added `POST /api/matches/generate` with `topN` + optional `attendeeIds` filtering and creator attribution support.
+- Implemented transactional run generation that creates one `match_runs` record and persists `attendee_matches` rows with deterministic ranking and full score breakdown fields.
+- Ensured response and persisted profile snapshots are privacy-safe (`email` excluded; title/company only when consented).
+- Added endpoint contract tests in `tests/match-generation-endpoint.test.mjs` for transaction behavior, deterministic ranking integration, score field persistence contracts, and privacy boundary checks.
+- Updated plan file `plans/2026-02-15-invite-match-engine.md` with US-003 completion checklist.
+- **Learnings:** Transaction control via explicit SQL statements avoids typed transaction wrapper friction while keeping endpoint behavior clear and auditable.
+---
+## 2026-02-15 03:57 America/Chicago - US-004: Add facilitator queue read endpoint for pending suggested matches
+- Added `GET /api/matches/facilitator-queue` endpoint with `page`, `pageSize`, `status`, and `runId` filters plus pagination metadata for admin queue rendering.
+- Joined `attendee_matches` to source/matched attendee records and projected consent-aware public-safe profiles (title/company only when `display_title_company=true`), with no email exposure.
+- Returned stable queue response contract containing suggestion metadata, score breakdown, attendee context, filters, and pagination fields.
+- Added `tests/facilitator-queue-endpoint.test.mjs` to validate pagination contract, deterministic filter/query behavior, join/projection constraints, and privacy guardrails.
+- Updated `plans/2026-02-15-invite-match-engine.md` with US-004 completion checklist.
+- **Learnings:** For facilitator review APIs, building profile projections directly from joined attendee records ensures consent logic is enforced consistently without leaking private fields.
+---
+## 2026-02-15 04:02 America/Chicago - US-005: Add approve/reject decision endpoint with immutable audit events
+- Added `POST` and `PATCH` endpoint at `app/api/matches/[suggestionId]/decision/route.ts` to accept facilitator decisions with strict action validation (`approve|reject`) and required actor metadata.
+- Implemented transactional decision flow: row lock (`FOR UPDATE`), transition guardrail (`suggested` only), status update, and immutable `match_decision_events` insert with reason/metadata payload.
+- Added finalized-suggestion guardrails returning `409` for invalid transitions/replays and `404` for unknown suggestions.
+- Returned privacy-safe decision payload that includes suggestion/run/status/audit metadata only (no private attendee fields).
+- Added `tests/match-decision-endpoint.test.mjs` contract tests for action validation, atomic update+audit write checks, transition guardrails, and privacy boundary assertions.
+- Updated `plans/2026-02-15-invite-match-engine.md` with US-005 completion checklist.
+- **Learnings:** For replay-safe facilitator decisions, explicit row locking plus status guard checks in the same transaction keeps status transitions deterministic and audit trails one-event-per-decision.
+---
+## 2026-02-15 04:14 America/Chicago - US-006: Build admin UI flow to review and act on suggested matches
+- Replaced `app/admin/page.tsx` placeholder controls with a facilitator queue UI that fetches pending suggestions, renders pairing cards, and shows score breakdown metrics.
+- Wired approve/reject buttons to `POST /api/matches/[suggestionId]/decision` with optimistic removal, pending button states, and success/error feedback plus background queue refresh.
+- Ensured privacy-safe rendering in UI by showing only safe payload fields and falling back to `Profile private` when title/company are unavailable.
+- Added admin UI flow test coverage in `tests/admin-review-ui.test.mjs` and responsive admin styles in `app/globals.css`.
+- Updated `plans/2026-02-15-invite-match-engine.md` with US-006 completion checklist.
+- **Learnings:** Optimistic local queue updates combined with immediate re-fetch keeps facilitator actions fast while preserving backend source-of-truth consistency.
+---
+## 2026-02-15 04:20 America/Chicago - US-001: Add event-session schema and attendee-to-event linkage
+- Added migration `db/migrations/202602150420_event_session_schema.sql` to create `events` with active-session flag, check-in window fields, timing constraints, and metadata.
+- Added backward-compatible attendee linkage via nullable `attendees.event_id` foreign key (`on delete set null`) guarded by an `information_schema` check for safe reruns.
+- Added query-path indexes for active-event lookup (`events_single_active_idx`, `events_active_starts_at_idx`) and event-scoped attendee reads (`attendees_event_id_created_at_idx`).
+- Added migration contract tests in `tests/event-session-schema.test.mjs` and updated `docs/data-model.md` + plan tracking with event-session model/compatibility notes.
+- **Learnings:** Event-session schema rollout can preserve existing attendee rows by keeping `event_id` nullable initially while indexing event-scoped reads for incremental adoption.
+---
+## 2026-02-15 04:27 America/Chicago - US-007: Add privacy leak prevention tests for new match APIs and admin surfaces
+- Extended invite/match endpoint tests to harden privacy assertions for generation, facilitator queue, and decision APIs, including explicit checks that `email` is absent from code paths and response contracts.
+- Added negative regression checks for malformed/over-broad query shapes (`SELECT *`, `RETURNING *`) in match APIs to guard against accidental private-column expansion.
+- Strengthened admin UI test coverage to ensure match review rendering keeps private fields hidden and only displays privacy-safe profile headline output.
+- Updated `tests/privacy-leak-tests.md` with match-feature privacy regression artifacts and explicit test file references.
+- **Learnings:** Privacy regressions in this codebase are best prevented with source-contract tests that enforce both API payload shape and SQL projection discipline.
+---
+## 2026-02-15 04:24 America/Chicago - US-001: Add abuse-trust schema for moderation queue and audit events (retry hardening)
+- Hardened `tests/abuse-trust-schema.test.mjs` to assert index column ordering for moderation queue filtering and risk-event correlation paths.
+- Added stricter schema contract check to prevent accidental bare `email` columns in abuse-trust tables while allowing only `email_hash` / `email_redacted`.
+- Revalidated migration contract expectations for audit timestamps and abuse-risk fields.
+- **Learnings:** For schema-heavy stories, asserting index definitions (including sort direction and column order) prevents subtle regressions that simple index-name checks miss.
+---
+## 2026-02-15 04:31 America/Chicago - US-001: Scaffold isolated Remotion demo workspace under demo/remotion
+- Added isolated Remotion scaffold under `demo/remotion/` with entrypoint (`src/index.js`), composition root registration (`src/Root.jsx`), baseline composition (`src/compositions/DallasAIDirectFlow.jsx`), Remotion config, assets placeholder, and local workspace `package.json`.
+- Wired reproducible root commands in `package.json`: `demo:remotion:preview`, `demo:remotion:render`, and `demo:remotion:still` via `npm --prefix demo/remotion` so Next.js root scripts remain undisturbed.
+- Documented folder purpose, usage, ownership, and plan linkage in `demo/remotion/README.md` with explicit reference to `plans/2026-02-15-remotion-readme-demo.md`.
+- Added automated scaffold validation in `tests/remotion-scaffold.test.mjs` for expected paths, root script wiring, and README ownership/usage contracts.
+- Updated `plans/2026-02-15-remotion-readme-demo.md` checklist for scaffold/test progress.
+- **Learnings:** Isolated media pipelines can be introduced safely by keeping them in a dedicated sub-workspace plus root proxy scripts rather than mixing toolchain config into the app root.
+---
+## 2026-02-15 06:17 America/Chicago - US-008: Update documentation and release validation for invite + match engine
+- Updated `docs/PRD.md` with deterministic matching requirements, facilitator queue/decision workflow, auditability constraints, and explicit private-field non-leakage language for APIs/UI.
+- Updated `docs/use-cases.md` and `docs/user-stories.md` with facilitator queue review, deterministic generation, and approve/reject decision journeys.
+- Updated `docs/runtime-validation.md` with explicit reproducibility replay steps and decision audit-event verification checks.
+- Refreshed `plans/2026-02-15-invite-match-engine.md` with US-008 ordered scope/checklist completion.
+- Added `tests/invite-match-docs-consistency.test.mjs` for plan existence, PRD requirements, facilitator journey coverage, and runtime validation reference checks.
+- **Learnings:** Documentation contracts in this repo are enforced effectively via phrase-level `node:test` checks to prevent PRD/runtime drift across stories.
+---
+## 2026-02-15 06:24 America/Chicago - US-009: Run integration gates and capture build/test/typecheck evidence for PR contract
+- Executed release-gate commands `npm run typecheck`, `npm test`, and `npm run build` after invite + match integration and confirmed all pass.
+- Added final verification artifact `docs/us-009-validation-report.md` with command outputs, exit-code outcomes, and summary for PR contract evidence.
+- Updated `plans/2026-02-15-invite-match-engine.md` with US-009 completion checklist and validation artifact location.
+- Verified no unresolved `TODO`/`FIXME` markers in match-engine implementation/test/docs surfaces used by this feature.
+- **Learnings:** Release-gate stories in this repo should publish a dedicated docs validation report so verification evidence is auditable without replaying local terminal history.
+---
+## 2026-02-15 06:40 America/Chicago - US-002: Implement configurable signup protection settings
+- Added typed signup protection configuration module with one shared contract for rate-limit settings and risk-scoring weights/thresholds, sourced from env vars with deterministic defaults.
+- Wired signup API route to load the shared protection config at request handling time so invalid settings fail fast before processing signups.
+- Added runtime test module and unit tests for default parsing, override parsing, and explicit validation failures for invalid env values.
+- Updated abuse/trust plan checklist to mark config story completion.
+- **Learnings:** For env-driven app settings in this repo, centralizing parsing/validation in a single config module keeps future route protections consistent and safer to tune.
+---
+## 2026-02-15 06:42 America/Chicago - US-001: Event-session runtime completion (retry)
+- Added shared active-event resolver (`lib/event-session.ts`) and organizer event-session API (`app/api/events/route.ts`) to create/activate sessions with single-active enforcement.
+- Updated signup API to bind new attendees to the active event (`event_id`) with null fallback when no active session is configured.
+- Updated room-board API/UI to scope attendee reads by selected/active event and return/display scoped aggregate metrics.
+- Added runtime contract tests in `tests/event-session-runtime.test.mjs` and updated `docs/runtime-validation.md` + `plans/2026-02-15-event-session-mode.md` tracking.
+- **Learnings:** Retry feedback can require shipping dependent runtime behavior in the same pass when verifier gates evaluate end-to-end acceptance beyond the initial schema migration.
+---
+## 2026-02-15 07:00 America/Chicago - US-002: Implement configurable signup protection settings (retry)
+- Expanded signup protection config contract with typed heuristic thresholds (`velocityRequestCount`, `malformedPayloadCount`) plus validation/defaults sourced from env variables.
+- Implemented route-level signup abuse controls in `app/api/attendees/signup/route.ts`: in-memory sliding-window rate limiting (429), risk scoring for honeypot/velocity/malformed-frequency/duplicate signals, and suspicious-event recording.
+- Added moderation/audit writes to `signup_risk_events` and `signup_moderation_queue`, plus redacted structured security logs (`signup_security`) with hashes and masked email only.
+- Hardened duplicate handling to emit abuse telemetry (`duplicate_email_conflict`) while preserving existing 409 response contract.
+- Added/updated tests: `tests/signup-protection-config.test.mjs` for parsing/validation thresholds and `tests/signup-abuse-protections.test.mjs` for route-level 429/moderation/audit protections.
+- **Learnings:** For abuse controls in this codebase, route-level risk decisions should share one typed config contract and always write redacted audit telemetry so tuning and incident review can happen without exposing PII.
+---
+## 2026-02-15 07:04 America/Chicago - US-001: Scaffold isolated Remotion demo workspace under demo/remotion (retry wiring hardening)
+- Hardened root Remotion proxy scripts in `package.json` with `demo:remotion:install` and install-first execution for preview/render/still to make CLI resolution reproducible on fresh checkouts.
+- Updated `tests/remotion-scaffold.test.mjs` to enforce install script presence and install-first command wiring for all root Remotion commands.
+- Updated `demo/remotion/README.md` usage to include install command and updated plan checklist in `plans/2026-02-15-remotion-readme-demo.md`.
+- Re-ran verification gates: `npm run typecheck`, `npm test`, `npm run build` (all passing).
+- **Learnings:** Nested tool workspaces need explicit install-first root script wrappers to avoid `command not found` failures in clean environments.
+---
+## 2026-02-15 07:13 America/Chicago - US-002: Implement configurable signup protection settings (retry docs/traceability alignment)
+- Confirmed typed signup protection config contract (`lib/signup-protection-config.ts`) remains the single source for rate-limit + heuristic threshold parsing with fail-fast validation.
+- Updated `plans/2026-02-15-abuse-trust-layer-v1.md` checklist to reflect completed route protections, risk scoring, duplicate hardening, redacted logging, tests, and docs/runbook evidence.
+- Updated `docs/OPEN-TODO.md` to remove stale “throttling not implemented” state and mark shipped throttling + structured logging incident format work as complete.
+- Updated `docs/security.md` abuse-controls section to document active configurable throttling/risk scoring and moderation/audit logging behavior.
+- Re-ran verification gates: `npm run typecheck`, `npm test`, `npm run build` (all passing).
+- **Learnings:** Keep operational TODO docs in sync with shipped controls; stale backlog wording can invalidate otherwise-complete security stories during verification.
+---
+## 2026-02-15 07:19 America/Chicago - US-003: Add deterministic route-level rate limiting to signup API
+- Added deterministic rate-limit snapshot helpers in `app/api/attendees/signup/route.ts` to compute bounded limit/remaining/reset/retry metadata from request fingerprints within configured windows.
+- Updated 429 handling in signup route to return stable `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`, and `Retry-After` headers while preserving existing success and abuse-audit behavior.
+- Updated `tests/signup-abuse-protections.test.mjs` to lock deterministic 429 response + header contract.
+- Updated `plans/2026-02-15-abuse-trust-layer-v1.md` with US-003 execution note.
+- **Learnings:** Deterministic abuse throttling in this codebase should emit explicit response headers (not just status/body) so repeated burst tests and operational monitoring have stable machine-readable limits.
+---
+
+## 2026-02-15 07:22 America/Chicago - US-004: Implement abuse risk scoring heuristics and suspicious-event recording
+- Extracted deterministic signup risk scoring into shared module `lib/signup-risk-scoring.ts` (plus `.mjs` mirror for runtime tests) and wired signup route to use it for honeypot/velocity/malformed/duplicate inputs.
+- Kept suspicious-event flow explicit in signup route: deterministic scoring drives flagged/blocked/rate_limited event writes and moderation queue enqueue behavior against configured threshold.
+- Strengthened abuse route contract tests to assert moderation trigger metadata and redacted persistence columns for abuse tables.
+- Added focused risk scoring unit tests in `tests/signup-risk-scoring.test.mjs` to lock deterministic numeric score composition and threshold behavior.
+- Updated `plans/2026-02-15-abuse-trust-layer-v1.md` with US-004 execution note.
+- **Learnings:** Extracting abuse heuristics into a pure scorer plus `.mjs` mirror makes route logic simpler and keeps deterministic scoring coverage independent from framework runtime concerns.
+---
+## 2026-02-15 07:32 America/Chicago - US-005: Harden duplicate handling and maintain normal signup UX contract
+- Hardened duplicate-email conflict handling in `app/api/attendees/signup/route.ts` by preserving signup email for telemetry fingerprinting while keeping the user-facing 409 contract unchanged.
+- Added policy-gated duplicate abuse telemetry (`config.abuseTelemetry.recordDuplicateAttempts`) so duplicate risk-event creation can be enabled/disabled via env without changing UX behavior.
+- Extended signup protection config (`lib/signup-protection-config.ts` + `.mjs`) with `SIGNUP_RECORD_DUPLICATE_ATTEMPTS` boolean parsing/validation and updated tests accordingly.
+- Added duplicate-hardening and first-time-success regression assertions in `tests/signup-abuse-protections.test.mjs`; updated config parsing tests in `tests/signup-protection-config.test.mjs`.
+- Updated `docs/security.md` and `plans/2026-02-15-abuse-trust-layer-v1.md` with duplicate telemetry policy and story execution notes.
+- **Learnings:** Keep duplicate handling split between stable client contract (409 + safe message) and configurable abuse instrumentation so ops can tune telemetry without UX regressions.
+---
+## 2026-02-15 07:37 America/Chicago - US-006: Add redacted structured logging for signup trust decisions
+- Replaced signup abuse log event with stable structured trust-decision schema (`signup_trust_decision`, `schemaVersion: 2026-02-15.v1`) including decision, route outcome, risk score, triggered rules, request fingerprint hash, and redacted/hash-only identifiers.
+- Added explicit allow decision logging on successful signup path and ensured flagged/blocked decisions are emitted for suspicious, rate-limited, validation-failed, and duplicate-conflict flows (including duplicate telemetry-disabled path).
+- Updated docs (`docs/security.md`, `docs/runtime-validation.md`) and abuse-trust plan notes to reference the stable schema and incident-response validation checks.
+- Expanded logging/privacy tests in `tests/signup-abuse-protections.test.mjs` for schema stability, allow/flag/block emission, and no raw email/IP in structured log payloads.
+- **Learnings:** For operational incident response, versioning structured security logs in-code and docs together prevents parser drift while preserving privacy constraints.
+---
+## 2026-02-15 07:44 America/Chicago - US-007: Add moderation queue API/read model for suspicious signup review
+- Added `app/api/moderation/queue/route.ts` with `GET` queue listing (status filters + pagination) and `PATCH` resolution updates for moderation workflow state.
+- Joined moderation queue rows to linked `signup_risk_events` so response items include event linkage (`risk_event_id`, event type, triggered rules, timestamps) for review drill-down.
+- Kept payloads redacted-safe by exposing only hash/redacted identifiers (`request_fingerprint_hash`, `email_redacted`) and excluding private attendee fields.
+- Added `tests/moderation-queue-api.test.mjs` for queue read model contract, redaction/privacy boundary, and status update persistence assertions.
+- Updated `plans/2026-02-15-abuse-trust-layer-v1.md` with US-007 execution notes.
+- **Learnings:** Moderation queue APIs in this repo should return risk-event linkage inline so ops reviewers can triage without secondary joins while preserving redacted-only payloads.
+---
+## 2026-02-15 07:50 America/Chicago - US-008: Update docs and incident-response guidance for Abuse/Trust Layer v1
+- Updated `docs/security.md` with explicit configurable rate-limit env controls, heuristic scoring factors, and moderation queue operator workflow.
+- Updated `docs/runtime-validation.md` with deterministic burst->429 validation steps and suspicious-event persistence checks (`signup_risk_events` + `signup_moderation_queue` linkage).
+- Rewrote `ops/incident-response.md` to include redacted trust-log inspection, suspicious record triage, rate-limit validation, and evidence preservation workflow.
+- Added `tests/abuse-trust-docs-consistency.test.mjs` to enforce docs/runbook/runtime phrase-level contracts and plan-file presence.
+- Updated `plans/2026-02-15-abuse-trust-layer-v1.md` with US-008 execution note.
+- **Learnings:** For Abuse/Trust operations, docs should bind directly to concrete log schema/version and queue table names so on-call triage remains deterministic under incident pressure.
+---
+## 2026-02-15 07:55 America/Chicago - US-009: Execute final verification gates and capture evidence for PR contract
+- Ran required release gates: `npm run typecheck`, `npm test`, and `npm run build` (all pass).
+- Ran focused abuse integration suite `node --test tests/signup-abuse-protections.test.mjs` to capture explicit evidence for deterministic 429 behavior, suspicious-event/moderation recording, duplicate hardening, and normal signup regression stability.
+- Updated `docs/us-009-validation-report.md` with command evidence, highlighted abuse/normal-flow verification lines, and gate outcomes.
+- Updated `plans/2026-02-15-abuse-trust-layer-v1.md` with US-009 execution evidence note.
+- **Learnings:** Final verification stories should include both full-suite gate results and focused story-critical test evidence so PR reviewers can confirm acceptance criteria without replaying local runs.
 ---
