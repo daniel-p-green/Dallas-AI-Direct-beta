@@ -52,8 +52,11 @@ Caption: Dallas AI Direct demo flow — QR signup to live room board update with
 To regenerate assets from repo root:
 
 ```bash
+npm run demo:remotion:generate
+# or run render/still/check separately
 npm run demo:remotion:render
 npm run demo:remotion:still
+npm run demo:remotion:check
 ```
 
 ---

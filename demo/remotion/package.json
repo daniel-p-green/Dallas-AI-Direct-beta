@@ -5,8 +5,9 @@
   "description": "Isolated Remotion workspace for Dallas AI Direct README demo assets.",
   "scripts": {
     "preview": "remotion studio src/index.js",
-    "render": "remotion render src/index.js DallasAIDirectFlow ../../public/demo/dallas-ai-direct-remotion-demo.mp4 --codec=h264 --concurrency=2 --crf=27",
-    "still": "remotion still src/index.js DallasAIDirectFlow ../../public/demo/dallas-ai-direct-remotion-demo-poster.png --frame=120"
+    "render": "remotion render src/index.js DallasAIDirectFlow ../../public/demo/dallas-ai-direct-remotion-demo.mp4 --codec=h264 --pixel-format=yuv420p --concurrency=2 --crf=30",
+    "still": "remotion still src/index.js DallasAIDirectFlow ../../public/demo/dallas-ai-direct-remotion-demo-poster.png --frame=120 --image-format=png",
+    "check:artifacts": "node ./scripts/check-artifacts.mjs"
   },
   "dependencies": {
     "react": "19.0.0",

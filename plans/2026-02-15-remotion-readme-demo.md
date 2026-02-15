@@ -38,6 +38,7 @@
 ## Story execution tracker
 - [x] US-001: Scaffold isolated Remotion demo workspace under `demo/remotion`
 - [x] US-002: Implement storyboard composition for Dallas AI Direct hero flow
+- [x] US-003: Add deterministic render pipeline and generate README-friendly demo artifacts
 
 ## Verification plan
 - `npm run typecheck`

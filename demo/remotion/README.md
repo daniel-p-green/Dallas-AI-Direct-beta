@@ -28,13 +28,22 @@ This folder owns the README demo video source for Dallas AI Direct.
 ```bash
 npm run demo:remotion:install
 npm run demo:remotion:preview
+npm run demo:remotion:generate
+```
+
+Or run commands individually:
+
+```bash
 npm run demo:remotion:render
 npm run demo:remotion:still
+npm run demo:remotion:check
 ```
 
 Rendered outputs are written to:
 - `public/demo/dallas-ai-direct-remotion-demo.mp4`
 - `public/demo/dallas-ai-direct-remotion-demo-poster.png`
+
+`npm run demo:remotion:check` enforces deterministic file presence and size budgets to keep repo footprint reasonable.
 
 ## Ownership
 
