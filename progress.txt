@@ -1,0 +1,57 @@
+# Progress Log
+Run: 84df7505-2a56-4073-8004-98f6d769f276
+Task: Project: Dallas AI Direct Alpha. Task: Create a minimal brand implementation package using Vercel Geist brand guidelines and icons for demo-facing assets.
+Started: 2026-02-12 03:02 America/Chicago
+
+## Codebase Patterns
+- This repository currently stores product and technical deliverables as Markdown-first artifacts under `docs/` and `tests/`.
+- Validation for documentation stories can be implemented as lightweight shell checks in `tests/` when no package scripts exist.
+- UI implementation now uses Next.js App Router under `app/` with route-local `page.tsx` files and shared shell in `app/layout.tsx`.
+- Lightweight implementation tests can run with `node:test` and file-content assertions when no browser test harness is required.
+- `npm run typecheck` scans `tests/**/*.ts`; browser-spec TypeScript files require installed type dependencies (for example `@playwright/test`) to keep CI green.
+
+---
+## 2026-02-12 03:03 America/Chicago - US-001: Create Geist-aligned brand guidelines document
+- Implemented `docs/brand-guidelines.md` with required sections: typography, spacing, color usage, icon rules, and accessibility guardrails.
+- Added explicit privacy guardrail that attendee email never appears in public-facing UI.
+- Added explicit non-endorsement wording: Geist-style conventions are referenced without claiming official Vercel endorsement.
+- Added documentation test assets: `tests/brand-guidelines-tests.md` and `tests/validate-brand-guidelines.sh`.
+- **Learnings:** The repo does not currently define npm scripts for build/test/typecheck, so doc validation is performed with direct shell checks.
+---
+## 2026-02-12 03:12 America/Chicago - US-001 retry completion
+- Added `docs/ui-patterns.md` and `docs/assets.md` to satisfy cross-story acceptance dependencies flagged by verifier.
+- Updated `README.md` with a short Design System section linking to brand docs.
+- Kept changes isolated to `docs/` and `README.md`.
+- Ran lightweight doc validation checks using `rg` due missing package scripts.
+---
+## 2026-02-12 03:20 America/Chicago - US-001: Scaffold Next.js alpha app shell and core routes
+- Implemented initial Next.js App Router scaffold with shared shell and required routes: `/`, `/signup`, `/room`, `/admin`.
+- Added persistent environment banner (`ALPHA DEMO`, `ENV: STAGE`, `PUBLIC VIEW SAFE`), shared header/subtitle, and required footer privacy statement.
+- Added baseline Geist-style readable CSS layout suitable for projector/mobile demo contexts.
+- Added app shell tests in `tests/app-shell.test.mjs` validating required route files and shared layout text invariants.
+- **Learnings:** Introducing minimal `package.json` + TypeScript setup enables deterministic typecheck and test execution for future UI stories.
+---
+## 2026-02-12 03:31 America/Chicago - US-001 retry: resolve typecheck gate for brand guidelines story
+- Kept `docs/brand-guidelines.md` as the source of truth with required Geist-style, privacy, and non-endorsement language.
+- Fixed story verification blocker by adding `@playwright/test` as a dev dependency so repository typecheck passes with existing `tests/ui-mobile-audit.spec.ts`.
+- Re-ran documentation validation for brand guideline content.
+- **Learnings:** Documentation-only stories can still be blocked by repository-wide TypeScript checks when test harness dependencies are missing.
+---
+## 2026-02-12 04:08 America/Chicago - US-002: Add reusable UI pattern documentation for demo surfaces
+- Updated `docs/ui-patterns.md` to keep required reusable pattern sections and made the privacy notice wording explicit: email is never displayed publicly on the room board.
+- Updated `README.md` with an explicit `## Design System` section linking to brand, UI patterns, and assets docs.
+- Added `tests/ui-patterns-docs.test.mjs` to validate required sections, required content/constraints, privacy-first language, and non-endorsement wording.
+- Expanded `npm test` to run all `tests/*.test.mjs` suites so doc tests execute with existing app-shell tests.
+- **Learnings:** For documentation stories in this repo, executable `node:test` content checks provide fast, deterministic acceptance coverage without adding UI harness complexity.
+---
+## 2026-02-12 04:24 America/Chicago - US-001 retry validation: app shell scaffold
+- Verified App Router scaffold remains present for `/`, `/signup`, `/room`, `/admin` with shared `app/layout.tsx` shell.
+- Re-ran acceptance checks: `npm run typecheck`, `npm test`, and `tests/validate-brand-guidelines.sh` all pass.
+- No code changes were required because existing US-001 implementation already satisfies route, banner, and footer acceptance criteria.
+- **Learnings:** Retry runs may be validation-only when prior commits already meet story-level requirements; keep evidence current via deterministic test output.
+---
+## 2026-02-12 04:33 America/Chicago - US-001 retry: strengthen app-shell acceptance coverage
+- Added explicit app-shell test assertion for shared header title/subtitle rendering in `tests/app-shell.test.mjs`.
+- Re-ran `npm run typecheck` and `npm test` to verify story acceptance checks remain green.
+- **Learnings:** For App Router shell stories, direct source assertions in `node:test` are a fast way to enforce exact banner/header/footer copy contracts.
+---
