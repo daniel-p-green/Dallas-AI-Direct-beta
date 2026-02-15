@@ -17,3 +17,4 @@ Before implementation on non-trivial tasks:
 
 # Codebase notes
 - Product demo tooling should be isolated under `demo/<tool>/` and invoked from root scripts via `npm --prefix` to avoid polluting Next.js app-root configuration.
+- Documentation acceptance is enforced by `node:test` suites under `tests/*.test.mjs`; update/add phrase-contract tests when changing PRD/use-cases/user-stories/runtime-validation docs.

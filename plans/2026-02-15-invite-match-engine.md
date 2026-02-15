@@ -42,3 +42,10 @@ Implement deterministic attendee matching, facilitator approval workflow, audit 
 - [x] Render success/error states and pending-action button state for operator feedback
 - [x] Keep UI privacy-safe by showing consent-safe title/company fields only and no email rendering
 - [x] Add UI flow tests covering queue fetch wiring, decision actions, and privacy guardrails
+
+## Story focus (US-008)
+- [x] Update `docs/PRD.md` with deterministic match requirements, facilitator workflow, auditability, and privacy constraints
+- [x] Update `docs/use-cases.md` and `docs/user-stories.md` with facilitator queue review + decision journeys
+- [x] Update `docs/runtime-validation.md` with reproducibility and decision-audit verification steps
+- [x] Add docs consistency tests for invite + match engine documentation contracts
+- [x] Verify `npm run typecheck`, `npm test`, and `npm run build` pass

@@ -20,6 +20,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - Backward-compatible Postgres migrations should guard additive column changes with `information_schema.columns` checks to keep reruns safe across partially migrated environments.
 - Privacy regression tests for API routes should assert both payload safety (no `email`) and query-shape safety (no `SELECT *` over sensitive tables) to catch leak regressions early.
 - Tool-specific demo workspaces should live under `demo/<tool>/` with root-level `npm --prefix` proxy scripts to keep app-root scripts stable.
+- Documentation stories should ship with `node:test` contract assertions over required phrases/workflows so runtime-validation and PRD drift is caught by `npm test`.
 
 ---
 ## 2026-02-12 03:03 America/Chicago - US-001: Create Geist-aligned brand guidelines document
@@ -153,4 +154,12 @@ Started: 2026-02-12 03:02 America/Chicago
 - Added automated scaffold validation in `tests/remotion-scaffold.test.mjs` for expected paths, root script wiring, and README ownership/usage contracts.
 - Updated `plans/2026-02-15-remotion-readme-demo.md` checklist for scaffold/test progress.
 - **Learnings:** Isolated media pipelines can be introduced safely by keeping them in a dedicated sub-workspace plus root proxy scripts rather than mixing toolchain config into the app root.
+---
+## 2026-02-15 06:17 America/Chicago - US-008: Update documentation and release validation for invite + match engine
+- Updated `docs/PRD.md` with deterministic matching requirements, facilitator queue/decision workflow, auditability constraints, and explicit private-field non-leakage language for APIs/UI.
+- Updated `docs/use-cases.md` and `docs/user-stories.md` with facilitator queue review, deterministic generation, and approve/reject decision journeys.
+- Updated `docs/runtime-validation.md` with explicit reproducibility replay steps and decision audit-event verification checks.
+- Refreshed `plans/2026-02-15-invite-match-engine.md` with US-008 ordered scope/checklist completion.
+- Added `tests/invite-match-docs-consistency.test.mjs` for plan existence, PRD requirements, facilitator journey coverage, and runtime validation reference checks.
+- **Learnings:** Documentation contracts in this repo are enforced effectively via phrase-level `node:test` checks to prevent PRD/runtime drift across stories.
 ---

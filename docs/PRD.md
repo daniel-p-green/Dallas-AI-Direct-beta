@@ -31,6 +31,7 @@ Reference: `docs/research/dallas-ai-problem-research-2026-02-15.md`
 - Attendee insert path to secure base table.
 - Public directory reads from `attendees_public` only.
 - Aggregates for room count and AI comfort distribution.
+- Invite + Match Engine with deterministic scoring and facilitator review queue.
 - Runtime validation gate before any live demo.
 
 ## Beta implementation plan (problem-aligned)
@@ -40,12 +41,14 @@ Reference: `docs/research/dallas-ai-problem-research-2026-02-15.md`
 - Fast fallback behavior for degraded live data situations.
 
 ### Theme B: Networking outcome quality
-- Matching logic from `help_needed` ↔ `help_offered` with facilitator review path.
-- Simple workflow for approve/reject intros with audit history.
+- Deterministic matching logic from `help_needed` ↔ `help_offered` and `ai_comfort_level` proximity.
+- Facilitator queue workflow for approve/reject decisions before intros are operationalized.
+- Match generation and decision actions are persisted with immutable audit events.
 
 ### Theme C: Trust and safety for live events
 - Abuse/throttle protection on signup path.
 - Redacted operational logs and moderation trail for suspicious behavior.
+- Privacy-safe match payloads that never expose private email on APIs or UI surfaces.
 
 ## Explicitly out of scope (current beta)
 
@@ -60,6 +63,7 @@ Reference: `docs/research/dallas-ai-problem-research-2026-02-15.md`
 - Room board updates within 5 seconds.
 - Board shows only safe public fields.
 - Email never appears in public output.
+- Facilitator can generate deterministic top-N match suggestions and resolve queue items confidently.
 
 ## Functional requirements
 
@@ -80,9 +84,12 @@ Reference: `docs/research/dallas-ai-problem-research-2026-02-15.md`
 10. System displays approved Dallas AI logo assets on shared demo shell and hero surfaces.
 11. System supports active event-session context for attendee association and room-board filtering.
 12. System supports deterministic networking suggestions from attendee intent fields.
-13. System records facilitator intro decisions in an auditable trail.
-14. System applies configurable signup abuse controls for burst traffic.
-15. System produces redacted trust-event logs suitable for volunteer operations.
+13. Deterministic scoring uses stable weights and tie-breaks; repeated runs over the same snapshot produce reproducible results.
+14. System records facilitator intro decisions in an immutable, auditable trail.
+15. Facilitator workflow supports queue review, approve/reject actions, and actor attribution for each decision event.
+16. System applies configurable signup abuse controls for burst traffic.
+17. System produces redacted trust-event logs suitable for volunteer operations.
+18. Match APIs and admin UI surfaces must never expose private fields, including attendee email.
 
 ## Non-functional requirements
 
@@ -100,6 +107,7 @@ Reference: `docs/research/dallas-ai-problem-research-2026-02-15.md`
 - Privacy incidents: zero public email exposure in demo/public surfaces.
 - Demo reliability: no critical-path failure during standard event walkthrough.
 - Networking signal quality: facilitator can act on relevant intro candidates during session.
+- Match reproducibility: deterministic generator returns the same ordered top-N results when replayed with fixed inputs/time.
 
 ### Release gates (must pass)
 - `npm run typecheck`
@@ -119,6 +127,7 @@ Reference: `docs/research/dallas-ai-problem-research-2026-02-15.md`
 - Email remains sensitive and non-public under all public-read flows.
 - Public reads must continue to use `attendees_public` projection boundary only.
 - Changes that affect privacy controls require docs + validation updates in same PR.
+- Facilitator decisions are auditable and cannot silently overwrite prior decision events.
 
 ## Risks
 
@@ -134,9 +143,9 @@ Reference: `docs/research/dallas-ai-problem-research-2026-02-15.md`
 - Operational scenarios: `docs/use-cases.md`
 - Data/privacy boundary design: `docs/data-model.md`, `docs/rls-policies.md`
 - Runtime verification: `docs/runtime-validation.md`, `ops/preflight.md`
+- Invite + Match Engine plan: `plans/2026-02-15-invite-match-engine.md`
 
 ## Skills used
 
-- Scanned `~/.codex/skills` and found `antfarm-workflows/SKILL.md`.
-- Applied `last30days` research workflow pattern for source synthesis.
-- Applied repository requirements standards directly.
+- Scanned `~/.codex/skills` and used `antfarm-workflows/SKILL.md` for workflow execution conventions.
+- Applied repository documentation standards directly.
