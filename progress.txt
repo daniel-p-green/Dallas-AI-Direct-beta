@@ -25,6 +25,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - When TypeScript libraries need runtime unit coverage under `node --test`, maintain a `.mjs` mirror module for direct test imports alongside the typed `.ts` source.
 - Event-session logic should be centralized in shared helpers (for example `lib/event-session.ts`) so signup and room APIs resolve active sessions consistently.
 - Abuse/Trust route protections should emit redacted structured logs plus mirrored inserts to `signup_risk_events` and `signup_moderation_queue` so suspicious traffic is auditable without raw PII.
+- Deterministic 429 contracts should include explicit `X-RateLimit-*` and `Retry-After` headers derived from the same window snapshot used for enforcement.
 
 ---
 ## 2026-02-12 03:03 America/Chicago - US-001: Create Geist-aligned brand guidelines document
@@ -210,4 +211,11 @@ Started: 2026-02-12 03:02 America/Chicago
 - Updated `docs/security.md` abuse-controls section to document active configurable throttling/risk scoring and moderation/audit logging behavior.
 - Re-ran verification gates: `npm run typecheck`, `npm test`, `npm run build` (all passing).
 - **Learnings:** Keep operational TODO docs in sync with shipped controls; stale backlog wording can invalidate otherwise-complete security stories during verification.
+---
+## 2026-02-15 07:19 America/Chicago - US-003: Add deterministic route-level rate limiting to signup API
+- Added deterministic rate-limit snapshot helpers in `app/api/attendees/signup/route.ts` to compute bounded limit/remaining/reset/retry metadata from request fingerprints within configured windows.
+- Updated 429 handling in signup route to return stable `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`, and `Retry-After` headers while preserving existing success and abuse-audit behavior.
+- Updated `tests/signup-abuse-protections.test.mjs` to lock deterministic 429 response + header contract.
+- Updated `plans/2026-02-15-abuse-trust-layer-v1.md` with US-003 execution note.
+- **Learnings:** Deterministic abuse throttling in this codebase should emit explicit response headers (not just status/body) so repeated burst tests and operational monitoring have stable machine-readable limits.
 ---

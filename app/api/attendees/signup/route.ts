@@ -32,6 +32,14 @@ type FingerprintWindow = {
   malformedTimestamps: number[];
 };
 
+type RateLimitSnapshot = {
+  limit: number;
+  remaining: number;
+  resetAtEpochMs: number;
+  retryAfterSeconds: number;
+  isLimited: boolean;
+};
+
 const fingerprintWindows = new Map<string, FingerprintWindow>();
 
 function normalizeOptionalText(value: unknown) {
@@ -87,6 +95,29 @@ function getRequestWindow(fingerprintHash: string, now: number, windowMs: number
 
   fingerprintWindows.set(fingerprintHash, existing);
   return existing;
+}
+
+function createRateLimitSnapshot(windowState: FingerprintWindow, now: number, windowMs: number, limit: number): RateLimitSnapshot {
+  const oldestTimestamp = windowState.requestTimestamps[0] ?? now;
+  const resetAtEpochMs = oldestTimestamp + windowMs;
+  const retryAfterSeconds = Math.max(1, Math.ceil((resetAtEpochMs - now) / 1000));
+
+  return {
+    limit,
+    remaining: Math.max(0, limit - windowState.requestTimestamps.length),
+    resetAtEpochMs,
+    retryAfterSeconds,
+    isLimited: windowState.requestTimestamps.length > limit,
+  };
+}
+
+function getRateLimitHeaders(snapshot: RateLimitSnapshot) {
+  return {
+    'X-RateLimit-Limit': String(snapshot.limit),
+    'X-RateLimit-Remaining': String(snapshot.remaining),
+    'X-RateLimit-Reset': String(Math.floor(snapshot.resetAtEpochMs / 1000)),
+    'Retry-After': String(snapshot.retryAfterSeconds),
+  };
 }
 
 function validate(body: unknown): { ok: true; payload: SignupPayload } | { ok: false; message: string } {
@@ -288,6 +319,12 @@ export async function POST(request: Request) {
     const requestFingerprintHash = hashValue(requestFingerprint) ?? 'unknown-fingerprint';
     const windowState = getRequestWindow(requestFingerprintHash, now, config.rateLimit.windowMs);
     windowState.requestTimestamps.push(now);
+    const rateLimitSnapshot = createRateLimitSnapshot(
+      windowState,
+      now,
+      config.rateLimit.windowMs,
+      config.rateLimit.maxRequests,
+    );
 
     if (!parsed.ok) {
       windowState.malformedTimestamps.push(now);
@@ -314,7 +351,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: parsed.message }, { status: 400 });
     }
 
-    if (windowState.requestTimestamps.length > config.rateLimit.maxRequests) {
+    if (rateLimitSnapshot.isLimited) {
       const riskSignal = computeRiskSignal({
         honeypotTriggered: parsed.payload.honeypot.length > 0,
         requestCountInWindow: windowState.requestTimestamps.length,
@@ -333,10 +370,17 @@ export async function POST(request: Request) {
           reason: 'rate_limit_exceeded',
           maxRequests: config.rateLimit.maxRequests,
           windowMs: config.rateLimit.windowMs,
+          resetAtEpochMs: rateLimitSnapshot.resetAtEpochMs,
         },
       });
 
-      return NextResponse.json({ error: 'Too many signup attempts. Please try again later.' }, { status: 429 });
+      return NextResponse.json(
+        { error: 'Too many signup attempts. Please try again later.' },
+        {
+          status: 429,
+          headers: getRateLimitHeaders(rateLimitSnapshot),
+        },
+      );
     }
 
     const { payload } = parsed;

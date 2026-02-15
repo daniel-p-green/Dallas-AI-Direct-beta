@@ -9,12 +9,17 @@ function read(relativePath) {
   return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 }
 
-test('signup route enforces deterministic 429 rate-limit response', () => {
+test('signup route enforces deterministic 429 rate-limit response and headers', () => {
   const route = read('app/api/attendees/signup/route.ts');
 
-  assert.match(route, /windowState\.requestTimestamps\.length > config\.rateLimit\.maxRequests/);
+  assert.match(route, /if \(rateLimitSnapshot\.isLimited\)/);
   assert.match(route, /status: 429/);
   assert.match(route, /Too many signup attempts\. Please try again later\./);
+  assert.match(route, /'X-RateLimit-Limit'/);
+  assert.match(route, /'X-RateLimit-Remaining'/);
+  assert.match(route, /'X-RateLimit-Reset'/);
+  assert.match(route, /'Retry-After'/);
+  assert.match(route, /headers: getRateLimitHeaders\(rateLimitSnapshot\)/);
 });
 
 test('signup route records abuse telemetry and moderation queue inserts', () => {

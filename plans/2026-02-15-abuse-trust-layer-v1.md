@@ -17,3 +17,6 @@ Add signup route protections (rate limit + risk heuristics), suspicious-event mo
 - Keep normal attendee success path unaffected for compliant traffic.
 - Never log raw email; hash or redact sensitive identifiers.
 - Ensure limits are deterministic and testable.
+
+## Story execution updates
+- US-003: Added deterministic rate-limit snapshot/headers (`X-RateLimit-*`, `Retry-After`) on signup 429 responses and updated abuse-protection tests to lock the 429 contract.
