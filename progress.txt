@@ -1,6 +1,6 @@
 # Progress Log
 Run: 84df7505-2a56-4073-8004-98f6d769f276
-Task: Project: Dallas AI Direct Alpha. Task: Create a minimal brand implementation package using Vercel Geist brand guidelines and icons for demo-facing assets.
+Task: Project: Dallas AI Direct Beta. Task: Create a minimal brand implementation package using Vercel Geist brand guidelines and icons for demo-facing assets.
 Started: 2026-02-12 03:02 America/Chicago
 
 ## Codebase Patterns

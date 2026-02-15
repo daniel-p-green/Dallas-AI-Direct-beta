@@ -1,6 +1,6 @@
 # Pre-Demo Command Card
 
-Run from repo root: `/Users/danielgreen/corex/dallas-ai-direct-alpha`
+Run from repo root: `/Users/danielgreen/corex/Dallas-AI-Direct-beta`
 
 ## 1) Build
 

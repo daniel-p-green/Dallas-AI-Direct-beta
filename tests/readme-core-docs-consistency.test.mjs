@@ -17,7 +17,7 @@ test('README includes required closing sentence exactly', () => {
   );
 });
 
-test('PLAN, PRD, and security docs stay aligned on privacy boundary and alpha posture', () => {
+test('PLAN, PRD, and security docs stay aligned on privacy boundary and beta posture', () => {
   const plan = read('docs/PLAN.md');
   const prd = read('docs/PRD.md');
   const security = read('docs/security.md');
@@ -37,8 +37,8 @@ test('PLAN, PRD, and security docs stay aligned on privacy boundary and alpha po
   assert.match(prd, /requires explicit attendee consent before displaying optional `title` or `company`/i);
   assert.match(security, /shown publicly only with explicit attendee consent/i);
 
-  // Alpha auth posture is convenience-only, not trust boundary.
-  assert.match(plan, /Alpha gate \| Optional password gate \| Convenience only, not primary security/i);
+  // Beta auth posture is convenience-only, not trust boundary.
+  assert.match(plan, /Beta gate \| Optional password gate \| Convenience only, not primary security/i);
   assert.match(security, /alpha access controls as convenience, not trust boundary\./i);
 });
 

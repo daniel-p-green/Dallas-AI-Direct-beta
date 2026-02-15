@@ -63,6 +63,19 @@ function ComfortDots({ level }: { level: number }) {
   );
 }
 
+function getSafeHttpUrl(value: string | undefined) {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? parsed.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
 export default function RoomPage() {
   const fallbackAttendees = useMemo(
     () => [...seed].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()),
@@ -162,6 +175,8 @@ export default function RoomPage() {
       <div className="attendeeList">
         {attendees.map((a) => {
           const justJoined = mounted && Date.now() - new Date(a.created_at).getTime() <= 5000;
+          const safeLinkedinUrl = getSafeHttpUrl(a.linkedin_url);
+
           return (
             <article key={`${a.name}-${a.created_at}`} className={`attendeeRow ${justJoined ? 'justJoined' : ''}`}>
               <div className="nameBlock">
@@ -170,15 +185,21 @@ export default function RoomPage() {
               </div>
               <ComfortDots level={a.ai_comfort_level} />
               <span className="muted">{a.help_offered.join(', ')}</span>
-              <a
-                className="iconButton"
-                href={a.linkedin_url || '#'}
-                target="_blank"
-                rel="noreferrer"
-                aria-label="Open LinkedIn profile"
-              >
-                <LinkedinIcon size={15} />
-              </a>
+              {safeLinkedinUrl ? (
+                <a
+                  className="iconButton"
+                  href={safeLinkedinUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label="Open LinkedIn profile"
+                >
+                  <LinkedinIcon size={15} />
+                </a>
+              ) : (
+                <span className="iconButton" aria-label="LinkedIn profile unavailable">
+                  <LinkedinIcon size={15} />
+                </span>
+              )}
             </article>
           );
         })}

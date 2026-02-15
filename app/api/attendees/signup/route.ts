@@ -16,6 +16,8 @@ type SignupPayload = {
   other_help_offered: string | null;
 };
 
+type ValidationResult = { ok: true; payload: SignupPayload } | { ok: false; message: string };
+
 function normalizeOptionalText(value: unknown) {
   if (typeof value !== 'string') {
     return null;
@@ -28,7 +30,24 @@ function toStringArray(values: unknown) {
   return Array.isArray(values) ? values.filter((value): value is string => typeof value === 'string') : [];
 }
 
-function validate(body: unknown): { ok: true; payload: SignupPayload } | { ok: false; message: string } {
+function normalizeSafeLinkedinUrl(value: unknown): { ok: true; url: string | null } | { ok: false } {
+  const normalized = normalizeOptionalText(value);
+  if (!normalized) {
+    return { ok: true, url: null };
+  }
+
+  try {
+    const parsed = new URL(normalized);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return { ok: false };
+    }
+    return { ok: true, url: parsed.toString() };
+  } catch {
+    return { ok: false };
+  }
+}
+
+function validate(body: unknown): ValidationResult {
   if (typeof body !== 'object' || body === null) {
     return { ok: false, message: 'Invalid request body.' };
   }
@@ -47,13 +66,18 @@ function validate(body: unknown): { ok: true; payload: SignupPayload } | { ok: f
   }
 
   const honeypot = typeof source.honeypot === 'string' ? source.honeypot.trim() : '';
+  const linkedin = normalizeSafeLinkedinUrl(source.linkedin_url);
+
+  if (!linkedin.ok) {
+    return { ok: false, message: 'LinkedIn URL must use http or https.' };
+  }
 
   return {
     ok: true,
     payload: {
       name,
       email,
-      linkedin_url: normalizeOptionalText(source.linkedin_url),
+      linkedin_url: linkedin.url,
       title: normalizeOptionalText(source.title),
       company: normalizeOptionalText(source.company),
       display_title_company: Boolean(source.display_title_company),
