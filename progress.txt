@@ -9,6 +9,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - UI implementation now uses Next.js App Router under `app/` with route-local `page.tsx` files and shared shell in `app/layout.tsx`.
 - Lightweight implementation tests can run with `node:test` and file-content assertions when no browser test harness is required.
 - `npm run typecheck` scans `tests/**/*.ts`; browser-spec TypeScript files require installed type dependencies (for example `@playwright/test`) to keep CI green.
+- Database changes are tracked as raw SQL migrations under `db/migrations/`, with schema integrity guarded by `node:test` assertions over migration SQL contracts.
 
 ---
 ## 2026-02-12 03:03 America/Chicago - US-001: Create Geist-aligned brand guidelines document
@@ -54,4 +55,11 @@ Started: 2026-02-12 03:02 America/Chicago
 - Added explicit app-shell test assertion for shared header title/subtitle rendering in `tests/app-shell.test.mjs`.
 - Re-ran `npm run typecheck` and `npm test` to verify story acceptance checks remain green.
 - **Learnings:** For App Router shell stories, direct source assertions in `node:test` are a fast way to enforce exact banner/header/footer copy contracts.
+---
+## 2026-02-15 03:18 America/Chicago - US-001: Add database schema for match generation, suggestions, and decision audit trail
+- Added migration `db/migrations/202602150330_match_engine_schema.sql` creating `match_runs`, `attendee_matches`, and `match_decision_events` with deterministic score fields, status fields, timestamps, and foreign keys to preserve referential integrity.
+- Added facilitator queue and top-N oriented indexes (`status`, `created_at`, `run_id`, `attendee_id`, score ordering) for approval workflow and attendee match lookup performance.
+- Updated `docs/data-model.md` with documented columns for new match/audit tables and explicit privacy boundary requiring API-safe projections with no email exposure.
+- Added `tests/match-engine-schema.test.mjs` covering migration existence, table creation, FK integrity, scoring/status fields, index presence, and privacy-safe schema contract checks.
+- **Learnings:** SQL migration contracts can be enforced in this repo with deterministic source-level assertions, enabling schema validation without introducing a database harness.
 ---

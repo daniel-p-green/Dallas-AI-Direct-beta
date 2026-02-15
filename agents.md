@@ -53,8 +53,9 @@ Define global delivery standards for Dallas AI Direct Alpha repository outputs.
 
 - Frontend app scaffold uses Next.js App Router in `app/`.
 - Shared shell is centralized in `app/layout.tsx`; route pages are at `app/<route>/page.tsx`.
+- Database schema migrations are tracked as SQL files under `db/migrations/`.
 - Type checking runs with `npm run typecheck`.
-- App shell regression checks run with `npm test` (Node test runner).
+- App shell and schema contract regression checks run with `npm test` (Node test runner).
 
 ## Skills used
 
