@@ -19,6 +19,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - Facilitator admin actions should use optimistic queue removal plus background re-fetch to keep UI responsive without full page reloads.
 - Backward-compatible Postgres migrations should guard additive column changes with `information_schema.columns` checks to keep reruns safe across partially migrated environments.
 - Privacy regression tests for API routes should assert both payload safety (no `email`) and query-shape safety (no `SELECT *` over sensitive tables) to catch leak regressions early.
+- Tool-specific demo workspaces should live under `demo/<tool>/` with root-level `npm --prefix` proxy scripts to keep app-root scripts stable.
 
 ---
 ## 2026-02-12 03:03 America/Chicago - US-001: Create Geist-aligned brand guidelines document
@@ -144,4 +145,12 @@ Started: 2026-02-12 03:02 America/Chicago
 - Added stricter schema contract check to prevent accidental bare `email` columns in abuse-trust tables while allowing only `email_hash` / `email_redacted`.
 - Revalidated migration contract expectations for audit timestamps and abuse-risk fields.
 - **Learnings:** For schema-heavy stories, asserting index definitions (including sort direction and column order) prevents subtle regressions that simple index-name checks miss.
+---
+## 2026-02-15 04:31 America/Chicago - US-001: Scaffold isolated Remotion demo workspace under demo/remotion
+- Added isolated Remotion scaffold under `demo/remotion/` with entrypoint (`src/index.js`), composition root registration (`src/Root.jsx`), baseline composition (`src/compositions/DallasAIDirectFlow.jsx`), Remotion config, assets placeholder, and local workspace `package.json`.
+- Wired reproducible root commands in `package.json`: `demo:remotion:preview`, `demo:remotion:render`, and `demo:remotion:still` via `npm --prefix demo/remotion` so Next.js root scripts remain undisturbed.
+- Documented folder purpose, usage, ownership, and plan linkage in `demo/remotion/README.md` with explicit reference to `plans/2026-02-15-remotion-readme-demo.md`.
+- Added automated scaffold validation in `tests/remotion-scaffold.test.mjs` for expected paths, root script wiring, and README ownership/usage contracts.
+- Updated `plans/2026-02-15-remotion-readme-demo.md` checklist for scaffold/test progress.
+- **Learnings:** Isolated media pipelines can be introduced safely by keeping them in a dedicated sub-workspace plus root proxy scripts rather than mixing toolchain config into the app root.
 ---

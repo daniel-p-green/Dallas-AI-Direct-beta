@@ -14,3 +14,6 @@ Before implementation on non-trivial tasks:
 # Branch policy
 - Default branch for implementation: `test`
 - Promote to `main` only via reviewed PR after verification gates.
+
+# Codebase notes
+- Product demo tooling should be isolated under `demo/<tool>/` and invoked from root scripts via `npm --prefix` to avoid polluting Next.js app-root configuration.
