@@ -13,7 +13,8 @@ and facilitator decisions are fully auditable.
 4. Submit one signup via QR flow.
 5. Confirm organizer can create/activate an event via `POST /api/events` (`action: create|activate`) and validate one active session.
 6. Submit one signup and confirm row links to the active event (`attendees.event_id = active event id`).
-7. Confirm room board updates within 5 seconds and displays active session context.
+7. Set active-event `check_in_window_start` in the future (or `check_in_window_end` in the past), then submit signup and confirm API returns `403` with `code: "CHECK_IN_WINDOW_CLOSED"`.
+8. Confirm room board updates within 5 seconds and displays active session context.
 8. Confirm UI and payloads never expose email.
 9. Trigger deterministic match generation for a fixed attendee subset (same `topN`, same time anchor).
 10. Re-run generation and verify ordered scores/results are identical (reproducibility check).
@@ -35,6 +36,7 @@ and facilitator decisions are fully auditable.
 - Injected HTML renders escaped text only.
 - Active event lookup returns one active session at a time.
 - Signup writes include `event_id` when an active event exists; legacy fallback remains `null` when no active event is configured.
+- Signup attempts outside the active event check-in window return `403` with `code: "CHECK_IN_WINDOW_CLOSED"`.
 - Room board API returns event-scoped attendees plus scoped aggregate metrics.
 - Deterministic match replay returns identical ordered suggestion IDs and score values.
 - Facilitator decision API returns updated suggestion status without private attendee fields.

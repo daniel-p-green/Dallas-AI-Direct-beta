@@ -30,6 +30,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - When TypeScript libraries need runtime unit coverage under `node --test`, maintain a `.mjs` mirror module for direct test imports alongside the typed `.ts` source.
 - Event-session logic should be centralized in shared helpers (for example `lib/event-session.ts`) so signup and room APIs resolve active sessions consistently.
 - Active event resolution should prefer explicit `is_active=true` rows, then deterministically fall back to the default event slug (`legacy-default-session`) to keep signup/room flows stable during organizer gaps.
+- Event-gated signup paths should enforce active `check_in_window_*` bounds before inserts and return an explicit machine-readable closure code (`CHECK_IN_WINDOW_CLOSED`) for client/ops handling.
 - Backward-compatible data migrations should include both idempotent SQL backfills (`ON CONFLICT` + targeted `WHERE ... IS NULL`) and temporary API read fallbacks so rollout order does not hide legacy rows.
 - Abuse/Trust route protections should emit redacted structured logs plus mirrored inserts to `signup_risk_events` and `signup_moderation_queue` so suspicious traffic is auditable without raw PII.
 - Signup trust-decision logs use a versioned schema (`event: signup_trust_decision`, `schemaVersion`) with allow/flag/block outcomes so incident runbooks can parse decisions reliably across releases.
@@ -338,4 +339,11 @@ Started: 2026-02-12 03:02 America/Chicago
 - Added `tests/event-session-selection-service.test.mjs` and refreshed `tests/event-session-runtime.test.mjs` assertions to cover fallback resolution, single-active enforcement helper usage, and endpoint integration points.
 - Updated `plans/2026-02-15-event-session-mode.md` story tracking for US-003 service completion details.
 - **Learnings:** Active-session write invariants and fallback precedence should be encoded in shared service helpers, then referenced by all event-aware routes.
+---
+## 2026-02-15 11:52 America/Chicago - US-004: Update signup API to associate attendees with active event and check-in windows
+- Enforced active-session check-in window validation in `app/api/attendees/signup/route.ts` before attendee inserts, returning `403` with `code: "CHECK_IN_WINDOW_CLOSED"` when outside configured bounds.
+- Preserved existing signup payload contract and success semantics while keeping `event_id` binding via active session resolution.
+- Updated runtime-validation docs and event-session plan tracking to document the defined outside-window error contract.
+- Added/updated source-contract tests in `tests/signup-abuse-protections.test.mjs` and `tests/event-session-runtime.test.mjs` for check-in window gating + event-scoped signup behavior.
+- **Learnings:** For event-scoped signup stories in this repo, codifying explicit error codes in both route source and phrase-contract tests keeps client handling and operational validation stable.
 ---

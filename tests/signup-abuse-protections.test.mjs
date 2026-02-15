@@ -43,6 +43,17 @@ test('duplicate signup conflict keeps stable 409 contract while telemetry obeys 
   assert.match(route, /status: 409/);
 });
 
+test('signup route enforces active-event check-in windows with a defined non-2xx contract', () => {
+  const route = read('app/api/attendees/signup/route.ts');
+
+  assert.match(route, /isWithinCheckInWindow\(/);
+  assert.match(route, /checkInWindowStart: activeEvent\.check_in_window_start/);
+  assert.match(route, /checkInWindowEnd: activeEvent\.check_in_window_end/);
+  assert.match(route, /CHECK_IN_WINDOW_CLOSED/);
+  assert.match(route, /Check-in is closed for the active event session\./);
+  assert.match(route, /status: 403/);
+});
+
 test('valid first-time signup success response contract remains stable', () => {
   const route = read('app/api/attendees/signup/route.ts');
 

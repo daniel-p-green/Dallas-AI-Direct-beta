@@ -25,6 +25,8 @@ test('signup API binds new attendees to the active event session', () => {
   assert.match(route, /resolveActiveEventSession\(db\)/);
   assert.match(route, /event_id/);
   assert.match(route, /\$\{activeEvent\?\.id \?\? null\}/);
+  assert.match(route, /isWithinCheckInWindow\(/);
+  assert.match(route, /CHECK_IN_WINDOW_CLOSED/);
 });
 
 test('public room API scopes attendee feed by selected or active event and returns aggregates', () => {

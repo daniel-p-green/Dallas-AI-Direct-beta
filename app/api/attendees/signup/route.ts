@@ -116,6 +116,34 @@ function getRateLimitHeaders(snapshot: RateLimitSnapshot) {
   };
 }
 
+function toEpochMs(value: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function isWithinCheckInWindow(args: {
+  nowEpochMs: number;
+  checkInWindowStart: string | null;
+  checkInWindowEnd: string | null;
+}) {
+  const windowStart = toEpochMs(args.checkInWindowStart);
+  const windowEnd = toEpochMs(args.checkInWindowEnd);
+
+  if (windowStart !== null && args.nowEpochMs < windowStart) {
+    return false;
+  }
+
+  if (windowEnd !== null && args.nowEpochMs > windowEnd) {
+    return false;
+  }
+
+  return true;
+}
+
 function validate(body: unknown): { ok: true; payload: SignupPayload } | { ok: false; message: string } {
   if (typeof body !== 'object' || body === null) {
     return { ok: false, message: 'Invalid request body.' };
@@ -388,6 +416,23 @@ export async function POST(request: Request) {
 
     const db = getDb();
     const activeEvent = await resolveActiveEventSession(db);
+
+    if (
+      activeEvent &&
+      !isWithinCheckInWindow({
+        nowEpochMs: now,
+        checkInWindowStart: activeEvent.check_in_window_start,
+        checkInWindowEnd: activeEvent.check_in_window_end,
+      })
+    ) {
+      return NextResponse.json(
+        {
+          error: 'Check-in is closed for the active event session.',
+          code: 'CHECK_IN_WINDOW_CLOSED',
+        },
+        { status: 403 },
+      );
+    }
 
     await db`
       insert into attendees (
