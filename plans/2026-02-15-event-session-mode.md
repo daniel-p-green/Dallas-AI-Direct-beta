@@ -13,6 +13,13 @@ Add multi-event support with active session selection, event-scoped signup/room 
 7. Docs updates for migration, runtime validation, and operations.
 8. Final verification evidence (typecheck/test/build).
 
+## Story tracking
+- [x] US-001: Add event-session schema and attendee-to-event linkage
+- [ ] US-002: Active-event selection service/defaults
+- [ ] US-003: Signup event association
+- [ ] US-004: Room board event filtering + aggregates
+- [ ] US-005+: Remaining organizer/session UX and docs stories
+
 ## Notes
 - Preserve current flows through a default active event fallback.
 - Keep privacy boundary unchanged (`attendees_public` or event-safe projection).

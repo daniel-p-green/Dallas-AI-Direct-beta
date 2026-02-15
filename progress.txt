@@ -17,6 +17,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - Queue/list APIs should enforce deterministic ordering with `ORDER BY created_at DESC, id ASC` to keep pagination stable across repeated facilitator fetches.
 - Decision/update APIs should lock target rows with `SELECT ... FOR UPDATE` and gate transitions (`status='suggested'`) before writing immutable audit events.
 - Facilitator admin actions should use optimistic queue removal plus background re-fetch to keep UI responsive without full page reloads.
+- Backward-compatible Postgres migrations should guard additive column changes with `information_schema.columns` checks to keep reruns safe across partially migrated environments.
 
 ---
 ## 2026-02-12 03:03 America/Chicago - US-001: Create Geist-aligned brand guidelines document
@@ -103,7 +104,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - Joined `attendee_matches` to source/matched attendee records and projected consent-aware public-safe profiles (title/company only when `display_title_company=true`), with no email exposure.
 - Returned stable queue response contract containing suggestion metadata, score breakdown, attendee context, filters, and pagination fields.
 - Added `tests/facilitator-queue-endpoint.test.mjs` to validate pagination contract, deterministic filter/query behavior, join/projection constraints, and privacy guardrails.
-- Updated plan file `plans/2026-02-15-invite-match-engine.md` with US-004 completion checklist.
+- Updated `plans/2026-02-15-invite-match-engine.md` with US-004 completion checklist.
 - **Learnings:** For facilitator review APIs, building profile projections directly from joined attendee records ensures consent logic is enforced consistently without leaking private fields.
 ---
 ## 2026-02-15 04:02 America/Chicago - US-005: Add approve/reject decision endpoint with immutable audit events
@@ -122,4 +123,11 @@ Started: 2026-02-12 03:02 America/Chicago
 - Added admin UI flow test coverage in `tests/admin-review-ui.test.mjs` and responsive admin styles in `app/globals.css`.
 - Updated `plans/2026-02-15-invite-match-engine.md` with US-006 completion checklist.
 - **Learnings:** Optimistic local queue updates combined with immediate re-fetch keeps facilitator actions fast while preserving backend source-of-truth consistency.
+---
+## 2026-02-15 04:20 America/Chicago - US-001: Add event-session schema and attendee-to-event linkage
+- Added migration `db/migrations/202602150420_event_session_schema.sql` to create `events` with active-session flag, check-in window fields, timing constraints, and metadata.
+- Added backward-compatible attendee linkage via nullable `attendees.event_id` foreign key (`on delete set null`) guarded by an `information_schema` check for safe reruns.
+- Added query-path indexes for active-event lookup (`events_single_active_idx`, `events_active_starts_at_idx`) and event-scoped attendee reads (`attendees_event_id_created_at_idx`).
+- Added migration contract tests in `tests/event-session-schema.test.mjs` and updated `docs/data-model.md` + plan tracking with event-session model/compatibility notes.
+- **Learnings:** Event-session schema rollout can preserve existing attendee rows by keeping `event_id` nullable initially while indexing event-scoped reads for incremental adoption.
 ---
