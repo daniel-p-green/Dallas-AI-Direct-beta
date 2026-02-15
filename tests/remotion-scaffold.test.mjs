@@ -58,5 +58,30 @@ test('demo/remotion README documents plan ownership and usage', () => {
   assert.match(readme, /plans\/2026-02-15-remotion-readme-demo\.md/);
   assert.match(readme, /npm run demo:remotion:install/);
   assert.match(readme, /npm run demo:remotion:render/);
+  assert.match(readme, /public\/demo\/dallas-ai-direct-remotion-demo\.mp4/);
   assert.match(readme, /Keep demo rendering code isolated from the Next\.js app root\./);
+});
+
+test('README links the remotion demo asset with privacy-safe caption text', () => {
+  const readme = fs.readFileSync(path.join(repoRoot, 'README.md'), 'utf8');
+
+  assert.match(readme, /## README Demo \(Remotion\)/);
+  assert.match(readme, /public\/demo\/dallas-ai-direct-remotion-demo\.mp4/);
+  assert.match(readme, /public\/demo\/dallas-ai-direct-remotion-demo-poster\.png/);
+  assert.match(readme, /no email exposure/i);
+  assert.match(readme, /npm run demo:remotion:render/);
+});
+
+test('rendered README-friendly remotion artifacts exist', () => {
+  const artifactPaths = [
+    'public/demo/dallas-ai-direct-remotion-demo.mp4',
+    'public/demo/dallas-ai-direct-remotion-demo-poster.png',
+  ];
+
+  for (const relativePath of artifactPaths) {
+    const absolutePath = path.join(repoRoot, relativePath);
+    assert.equal(fs.existsSync(absolutePath), true, `missing demo artifact: ${relativePath}`);
+    const stats = fs.statSync(absolutePath);
+    assert.ok(stats.size > 0, `demo artifact is empty: ${relativePath}`);
+  }
 });

@@ -25,6 +25,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - Tool-specific demo workspaces should live under `demo/<tool>/` with root-level `npm --prefix` proxy scripts to keep app-root scripts stable.
 - For nested demo workspaces, root proxy scripts should include an explicit install step so local CLIs (for example `remotion`) are resolvable in fresh environments.
 - Remotion v4 workspaces should include `@remotion/cli` and import config from `@remotion/cli/config`; importing `Config` from `remotion` breaks render commands.
+- README demo media should render into tracked `public/demo/` paths (not `out/`) so artifacts survive `.gitignore` rules and remain publishable.
 - Documentation stories should ship with `node:test` contract assertions over required phrases/workflows so runtime-validation and PRD drift is caught by `npm test`.
 - When TypeScript libraries need runtime unit coverage under `node --test`, maintain a `.mjs` mirror module for direct test imports alongside the typed `.ts` source.
 - Event-session logic should be centralized in shared helpers (for example `lib/event-session.ts`) so signup and room APIs resolve active sessions consistently.
@@ -279,4 +280,12 @@ Started: 2026-02-12 03:02 America/Chicago
 - Expanded `tests/remotion-scaffold.test.mjs` with assertions that the workspace includes the CLI dependency and correct config import path.
 - Revalidated scaffold command execution by running `npm run demo:remotion:still` successfully after wiring fix.
 - **Learnings:** Remotion v4 separates CLI config from core runtime; scaffold checks should lock both dependency presence and config import path to prevent regressions.
+---
+## 2026-02-15 08:57 America/Chicago - US-001: Scaffold isolated Remotion demo workspace under demo/remotion (retry deliverables)
+- Updated the Remotion composition for clearer typography/pacing/privacy messaging and set reproducible outputs to tracked `public/demo/` assets.
+- Rendered README-ready artifacts: `public/demo/dallas-ai-direct-remotion-demo.mp4` and `public/demo/dallas-ai-direct-remotion-demo-poster.png`.
+- Added a new README demo section with poster->video link, explicit caption, and reproducible render commands.
+- Extended `tests/remotion-scaffold.test.mjs` to validate README demo linkage, privacy-safe caption language, and artifact existence/non-empty output.
+- Updated `demo/remotion/README.md` and plan checklist (`plans/2026-02-15-remotion-readme-demo.md`) to reflect shipped render outputs.
+- **Learnings:** For repo-published demo media, render directly into versioned public asset paths and enforce README linkage via `node:test` contracts.
 ---

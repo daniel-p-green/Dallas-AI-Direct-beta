@@ -25,6 +25,10 @@ npm run demo:remotion:render
 npm run demo:remotion:still
 ```
 
+Rendered outputs are written to:
+- `public/demo/dallas-ai-direct-remotion-demo.mp4`
+- `public/demo/dallas-ai-direct-remotion-demo-poster.png`
+
 ## Ownership
 
 - Workflow: `feature-dev`

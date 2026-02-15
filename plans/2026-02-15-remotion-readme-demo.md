@@ -31,8 +31,8 @@
 - [x] Define story plan and acceptance criteria for Remotion demo delivery
 - [x] Scaffold Remotion source structure and composition baseline
 - [x] Stabilize root command wiring with deterministic demo workspace install step
-- [ ] Implement final visual narrative and render pipeline
-- [ ] Integrate README section + demo artifact links/captions
+- [x] Implement final visual narrative and render pipeline
+- [x] Integrate README section + demo artifact links/captions
 - [x] Add/update tests and run verification gates
 
 ## Verification plan
