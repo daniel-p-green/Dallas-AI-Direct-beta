@@ -20,7 +20,8 @@
 - Unique index on normalized email.
 - Honeypot field must remain empty.
 - Server-side validation for schema and range checks.
-- Optional throttling by IP and user-agent.
+- Configurable route-level throttling and risk scoring for signup traffic (IP/user-agent fingerprint + heuristic weights/thresholds).
+- Suspicious attempts are mirrored to moderation/audit tables with redacted structured logs.
 
 ## Alpha password gate
 
