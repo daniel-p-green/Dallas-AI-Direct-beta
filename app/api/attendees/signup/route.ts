@@ -163,13 +163,18 @@ function validate(body: unknown): { ok: true; payload: SignupPayload } | { ok: f
   }
 
   const honeypot = typeof source.honeypot === 'string' ? source.honeypot.trim() : '';
+  const linkedin = normalizeSafeLinkedinUrl(source.linkedin_url);
+
+  if (!linkedin.ok) {
+    return { ok: false, message: 'LinkedIn URL must use http or https.' };
+  }
 
   return {
     ok: true,
     payload: {
       name,
       email,
-      linkedin_url: normalizeOptionalText(source.linkedin_url),
+      linkedin_url: linkedin.url,
       title: normalizeOptionalText(source.title),
       company: normalizeOptionalText(source.company),
       display_title_company: Boolean(source.display_title_company),

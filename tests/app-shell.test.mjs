@@ -26,7 +26,7 @@ test('App Router route files exist for required paths', () => {
 test('shared layout renders environment banner text', () => {
   const layout = read('app/layout.tsx');
 
-  assert.match(layout, /ALPHA DEMO/);
+  assert.match(layout, /BETA DEMO/);
   assert.match(layout, /ENV: STAGE/);
   assert.match(layout, /PUBLIC VIEW SAFE/);
 });
@@ -34,7 +34,7 @@ test('shared layout renders environment banner text', () => {
 test('shared header renders title and subtitle', () => {
   const layout = read('app/layout.tsx');
 
-  assert.match(layout, /Dallas AI Direct Alpha/);
+  assert.match(layout, /Dallas AI Direct Beta/);
   assert.match(layout, /Fast, private attendee signal for in-room demo moments\./);
 });
 

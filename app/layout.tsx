@@ -5,14 +5,14 @@ import { GeistMono } from 'geist/font/mono';
 import './globals.css';
 
 export const metadata = {
-  title: 'Dallas AI Direct Alpha',
-  description: 'Live demo shell for Dallas AI Direct Alpha'
+  title: 'Dallas AI Direct Beta',
+  description: 'Live demo shell for Dallas AI Direct Beta'
 };
 
 function EnvironmentBanner() {
   return (
     <div className="envBanner" role="status" aria-label="environment banner">
-      <span>ALPHA DEMO</span>
+      <span>BETA DEMO</span>
       <span>ENV: STAGE</span>
       <span>PUBLIC VIEW SAFE</span>
     </div>
@@ -35,7 +35,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               className="brandLogo"
             />
           </div>
-          <h1>Dallas AI Direct Alpha</h1>
+          <h1>Dallas AI Direct Beta</h1>
           <p>Fast, private attendee signal for in-room demo moments.</p>
         </header>
         <main className="main">{children}</main>

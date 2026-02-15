@@ -1,6 +1,6 @@
 # Roadmap
 
-## Alpha
+## Beta
 - QR signup.
 - Secure attendee storage.
 - Public directory view without email.

@@ -33,8 +33,8 @@ require_match "docs/PLAN.md" "RLS and a[[:space:]]+public-safe view" "PLAN must 
 require_match "docs/PRD.md" "Security-first backend controls with RLS\." "PRD must preserve RLS-first posture"
 require_match "docs/security.md" "Postgres RLS enforces data access in the database\." "security doc must preserve DB boundary claim"
 
-# Alpha auth posture is convenience-only.
-require_match "docs/PLAN.md" "Alpha gate \| Optional password gate \| Convenience only, not primary security" "PLAN must keep alpha gate convenience-only posture"
+# Beta auth posture is convenience-only.
+require_match "docs/PLAN.md" "Beta gate \| Optional password gate \| Convenience only, not primary security" "PLAN must keep beta gate convenience-only posture"
 require_match "docs/security.md" "alpha access controls as convenience, not trust boundary\." "security doc must keep convenience-only alpha access posture"
 
 # Skills footer must exist and reference antfarm-workflows skill.
