@@ -17,11 +17,9 @@ Dallas AI Direct Beta is a free, open-source attendee directory for live events,
 
 ---
 
-## Product and Pricing Clarification
+## Product Clarification
 
-- **Dallas AI Direct (this repo):** free, open-source event directory software.
-- **Meetups subscription (separate context):** paid model, currently referenced as **$15/user**.
-- This repository should not blend those two models in product copy or ROI framing.
+Dallas AI Direct Beta is free and open source software for event attendee visibility. It is not a paid subscription product.
 
 ## Business Constraint
 
@@ -259,8 +257,7 @@ References:
 - `docs/` architecture, security, policy, runbooks, and open TODOs (`docs/OPEN-TODO.md`)
 - `tests/` validation plans and smoke checks
 - `ops/` operational checklists and incident guidance
-- `prompts/v0/` deterministic UI build orchestration
-- `v0-build/` isolated non-code context + brand pack + target workspace for v0-generated build output
+- `prompts/` implementation notes for maintainers (product-focused only)
 
 ## Design System
 
