@@ -30,6 +30,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - Remotion v4 workspaces should include `@remotion/cli` and import config from `@remotion/cli/config`; importing `Config` from `remotion` breaks render commands.
 - README demo media should render into tracked `public/demo/` paths (not `out/`) so artifacts survive `.gitignore` rules and remain publishable.
 - Documentation stories should ship with `node:test` contract assertions over required phrases/workflows so runtime-validation and PRD drift is caught by `npm test`.
+- Event-session doc updates should move as a bundle across PRD + use-cases + user-stories + runtime-validation + migration runbook, backed by one docs-consistency test file.
 - When TypeScript libraries need runtime unit coverage under `node --test`, maintain a `.mjs` mirror module for direct test imports alongside the typed `.ts` source.
 - Event-session logic should be centralized in shared helpers (for example `lib/event-session.ts`) so signup and room APIs resolve active sessions consistently.
 - Active event resolution should prefer explicit `is_active=true` rows, then deterministically fall back to the default event slug (`legacy-default-session`) to keep signup/room flows stable during organizer gaps.
@@ -372,4 +373,10 @@ Started: 2026-02-12 03:02 America/Chicago
 - Added regression coverage in `tests/event-session-selection-service.test.mjs` for runtime fallback upsert/activation behavior and shared resolver wiring used by signup/room endpoints.
 - Updated compatibility docs in `docs/event-session-migration.md` and runtime validation expectations in `docs/runtime-validation.md`; updated plan tracking in `plans/2026-02-15-event-session-mode.md`.
 - **Learnings:** Event-session fallback should be runtime self-healing (not just migration-time) because some environments deploy code before backfill setup is manually confirmed.
+---
+## 2026-02-15 12:24 America/Chicago - US-008: Update docs and migration/runbook guidance for Event Session Mode
+- Updated event-session documentation across `docs/PRD.md`, `docs/use-cases.md`, `docs/user-stories.md`, `docs/runtime-validation.md`, `docs/data-model.md`, and `docs/event-session-migration.md` to cover active-session selection, event-scoped signup/room behavior, and check-in window handling.
+- Updated `plans/2026-02-15-event-session-mode.md` story tracking to mark US-008 docs scope complete.
+- Added `tests/event-session-docs-consistency.test.mjs` to enforce plan presence plus phrase-level contracts for event-session docs and migration compatibility runbook guidance.
+- **Learnings:** Event-session documentation acceptance is most reliable when runtime switching checks and migration runbook steps are tested together with product docs in one contract suite.
 ---

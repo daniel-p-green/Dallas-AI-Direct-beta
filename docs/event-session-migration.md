@@ -23,3 +23,10 @@ Provide a backward-compatible path for deployments that already have attendee ro
 - This migration is additive and does not delete attendee rows.
 - Existing operator-selected active event is preserved.
 - Runtime fallback now auto-creates/activates `legacy-default-session` when no active event exists, so signup and room flows remain operational without manual organizer setup.
+
+## Deployment runbook (compatibility path)
+1. Deploy schema + migration bundle that includes `202602151125_event_session_legacy_backfill.sql`.
+2. Verify `legacy-default-session` exists and exactly one event has `is_active = true`.
+3. Run organizer activation to switch from `legacy-default-session` to the real event before doors open.
+4. Validate one legacy attendee row now has non-null `event_id` and new signups write to the active event.
+5. If migration timing drifts, rely on runtime fallback (auto-active default event) and complete backfill once DB migrations are healthy.

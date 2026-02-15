@@ -38,6 +38,7 @@ Reference: `docs/research/dallas-ai-problem-research-2026-02-15.md`
 
 ### Theme A: Event operations at scale
 - Event-session scoping so room board and check-in are tied to the correct live event.
+- Organizer controls to create sessions, switch the active session, and enforce check-in windows.
 - Fast fallback behavior for degraded live data situations.
 
 ### Theme B: Networking outcome quality
@@ -83,13 +84,15 @@ Reference: `docs/research/dallas-ai-problem-research-2026-02-15.md`
 9. System displays aggregate metrics without private fields.
 10. System displays approved Dallas AI logo assets on shared demo shell and hero surfaces.
 11. System supports active event-session context for attendee association and room-board filtering.
-12. System supports deterministic networking suggestions from attendee intent fields.
-13. Deterministic scoring uses stable weights and tie-breaks; repeated runs over the same snapshot produce reproducible results.
-14. System records facilitator intro decisions in an immutable, auditable trail.
-15. Facilitator workflow supports queue review, approve/reject actions, and actor attribution for each decision event.
-16. System applies configurable signup abuse controls for burst traffic.
-17. System produces redacted trust-event logs suitable for volunteer operations.
-18. Match APIs and admin UI surfaces must never expose private fields, including attendee email.
+12. System allows organizers to switch the active event session while preserving a single-active invariant.
+13. System enforces event check-in windows and returns a machine-readable closure code when check-in is outside bounds.
+14. System supports deterministic networking suggestions from attendee intent fields.
+15. Deterministic scoring uses stable weights and tie-breaks; repeated runs over the same snapshot produce reproducible results.
+16. System records facilitator intro decisions in an immutable, auditable trail.
+17. Facilitator workflow supports queue review, approve/reject actions, and actor attribution for each decision event.
+18. System applies configurable signup abuse controls for burst traffic.
+19. System produces redacted trust-event logs suitable for volunteer operations.
+20. Match APIs and admin UI surfaces must never expose private fields, including attendee email.
 
 ## Non-functional requirements
 

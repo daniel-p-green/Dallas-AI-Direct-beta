@@ -21,7 +21,8 @@ Add multi-event support with active session selection, event-scoped signup/room 
 - [x] US-005: Room board event filtering + aggregates (event-only active-session query + comfort distribution aggregate)
 - [x] US-006: Organizer admin UI for create-session, active-session switching, and check-in window validation/errors
 - [x] US-007: Ensure default active-event fallback keeps existing flows functional
-- [ ] US-008+: Remaining docs/final verification stories
+- [x] US-008: Docs updates for PRD/use-cases/user-stories/runtime-validation + migration runbook guidance
+- [ ] US-009: Final verification evidence (typecheck/test/build)
 
 ## Notes
 - Preserve current flows through a default active event fallback.

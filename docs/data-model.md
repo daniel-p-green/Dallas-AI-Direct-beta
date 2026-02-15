@@ -40,7 +40,7 @@
 
 - Migration `db/migrations/202602151125_event_session_legacy_backfill.sql` upserts deterministic default event slug `legacy-default-session` and backfills legacy attendees (`event_id IS NULL`) to that event.
 - The backfill is idempotent (`ON CONFLICT (slug)` + `UPDATE ... WHERE event_id IS NULL`) and safe to rerun in staging validation.
-- During rollout, room-board reads include compatibility fallback (`event_id = activeEvent.id OR event_id IS NULL`) so pre-backfill attendees remain visible.
+- Runtime compatibility keeps signup/room flows safe by auto-resolving `legacy-default-session` when no active event exists; event-scoped room queries stay strict (`event_id = activeEvent.id`) once an active session is set.
 - Migration-level indexes support active-event lookup and event-scoped attendee reads.
 
 ## Public projection: `attendees_public`
