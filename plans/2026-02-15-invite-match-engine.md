@@ -23,3 +23,9 @@ Implement deterministic attendee matching, facilitator approval workflow, audit 
 - [x] Persist `match_runs` + `attendee_matches` inside one DB transaction
 - [x] Return privacy-safe response payload (no email/private-only fields)
 - [x] Add endpoint contract tests for persistence, deterministic ranking call, and score/audit fields
+
+## Story focus (US-004)
+- [x] Add `GET /api/matches/facilitator-queue` endpoint with pagination and status/run filters
+- [x] Join suggestions to source + matched attendee records and project consent-aware public-safe fields
+- [x] Ensure queue response contract is stable for admin UI rendering metadata
+- [x] Add endpoint tests covering pagination/filtering determinism and no-email privacy boundary

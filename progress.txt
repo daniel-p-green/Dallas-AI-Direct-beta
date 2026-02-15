@@ -14,6 +14,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - Migration contract tests should assert indexed column order (not only index names) to lock intended query paths for queue and ranking endpoints.
 - Deterministic ranking logic should live in pure `lib/*.mjs` utilities with explicit weight constants and fixed `now` injection for reproducible tests.
 - For write-heavy API routes using `postgres` tagged templates, explicit `begin`/`commit`/`rollback` statements provide straightforward transactional control that keeps TypeScript checks simple.
+- Queue/list APIs should enforce deterministic ordering with `ORDER BY created_at DESC, id ASC` to keep pagination stable across repeated facilitator fetches.
 
 ---
 ## 2026-02-12 03:03 America/Chicago - US-001: Create Geist-aligned brand guidelines document
@@ -94,4 +95,12 @@ Started: 2026-02-12 03:02 America/Chicago
 - Added endpoint contract tests in `tests/match-generation-endpoint.test.mjs` for transaction behavior, deterministic ranking integration, score field persistence contracts, and privacy boundary checks.
 - Updated plan file `plans/2026-02-15-invite-match-engine.md` with US-003 completion checklist.
 - **Learnings:** Transaction control via explicit SQL statements avoids typed transaction wrapper friction while keeping endpoint behavior clear and auditable.
+---
+## 2026-02-15 03:57 America/Chicago - US-004: Add facilitator queue read endpoint for pending suggested matches
+- Added `GET /api/matches/facilitator-queue` endpoint with `page`, `pageSize`, `status`, and `runId` filters plus pagination metadata for admin queue rendering.
+- Joined `attendee_matches` to source/matched attendee records and projected consent-aware public-safe profiles (title/company only when `display_title_company=true`), with no email exposure.
+- Returned stable queue response contract containing suggestion metadata, score breakdown, attendee context, filters, and pagination fields.
+- Added `tests/facilitator-queue-endpoint.test.mjs` to validate pagination contract, deterministic filter/query behavior, join/projection constraints, and privacy guardrails.
+- Updated plan file `plans/2026-02-15-invite-match-engine.md` with US-004 completion checklist.
+- **Learnings:** For facilitator review APIs, building profile projections directly from joined attendee records ensures consent logic is enforced consistently without leaking private fields.
 ---
