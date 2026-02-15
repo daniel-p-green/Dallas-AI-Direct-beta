@@ -5,6 +5,14 @@
 Organizers need real-time attendee visibility without paid directory lock-in
 or email exposure risk.
 
+## Primary personas
+
+- New member / first-time event attendee
+- Regular returning member
+- Event organizer / facilitator
+- Ops and security reviewer
+- Dallas maintainer / contributor
+
 ## Product scope (alpha)
 
 - QR signup flow during talk Q and A.
