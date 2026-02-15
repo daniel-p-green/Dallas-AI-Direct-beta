@@ -36,6 +36,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - Moderation review endpoints should join queue rows with linked risk-event rows and return only redacted/hash identifiers to keep triage context complete without exposing PII.
 - Remotion storyboard compositions should centralize scene labels/copy in a single array constant so narrative sequencing and privacy messaging can be contract-tested without a browser harness.
 - README demo media pipelines should include a deterministic artifact guard script (existence + max-size budgets) and a single root `generate` command for reproducible regen.
+- README media sections should have a dedicated `node:test` contract that validates section-local relative links and required privacy caption language.
 
 ---
 ## 2026-02-12 03:03 America/Chicago - US-001: Create Geist-aligned brand guidelines document
@@ -306,4 +307,10 @@ Started: 2026-02-12 03:02 America/Chicago
 - Expanded `tests/remotion-scaffold.test.mjs` to validate pipeline command wiring, lightweight render settings, deterministic output names, and artifact guard script execution.
 - Updated `plans/2026-02-15-remotion-readme-demo.md` story tracker with US-003 completion.
 - **Learnings:** Demo artifact pipelines are safer when artifact size budgets are executable checks instead of manual review notes.
+---
+## 2026-02-15 09:26 America/Chicago - US-004: Integrate demo section into README with caption and privacy context
+- Tightened README demo caption copy to explicitly narrate the flow (QR signup → board update → privacy-safe public view) and state that attendee email is never shown publicly.
+- Added dedicated README demo integration tests (`tests/readme-demo-integration.test.mjs`) that validate section presence, required privacy-caption language, reproducible command references, and repo-relative media links that resolve to existing files.
+- Updated `plans/2026-02-15-remotion-readme-demo.md` story tracker with US-004 completion.
+- **Learnings:** README demo acceptance is easiest to keep stable with section-scoped assertions instead of relying only on broad scaffold tests.
 ---

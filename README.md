@@ -47,7 +47,7 @@ A lightweight Remotion demo visualizes the Dallas AI Direct flow:
 
 [![Dallas AI Direct Remotion demo poster](public/demo/dallas-ai-direct-remotion-demo-poster.png)](public/demo/dallas-ai-direct-remotion-demo.mp4)
 
-Caption: Dallas AI Direct demo flow — QR signup to live room board update with public privacy guarantees (email never shown).
+Caption: Dallas AI Direct flow — QR signup → room board update → privacy-safe public view (attendee email is never shown publicly).
 
 To regenerate assets from repo root:
 

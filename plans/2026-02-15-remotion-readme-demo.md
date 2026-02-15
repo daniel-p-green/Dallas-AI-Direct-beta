@@ -39,6 +39,7 @@
 - [x] US-001: Scaffold isolated Remotion demo workspace under `demo/remotion`
 - [x] US-002: Implement storyboard composition for Dallas AI Direct hero flow
 - [x] US-003: Add deterministic render pipeline and generate README-friendly demo artifacts
+- [x] US-004: Integrate demo section into README with caption and privacy context
 
 ## Verification plan
 - `npm run typecheck`
