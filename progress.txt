@@ -380,3 +380,10 @@ Started: 2026-02-12 03:02 America/Chicago
 - Added `tests/event-session-docs-consistency.test.mjs` to enforce plan presence plus phrase-level contracts for event-session docs and migration compatibility runbook guidance.
 - **Learnings:** Event-session documentation acceptance is most reliable when runtime switching checks and migration runbook steps are tested together with product docs in one contract suite.
 ---
+## 2026-02-15 12:07 America/Chicago - US-009: Run final integration verification and capture release evidence
+- Executed final release gates for Event Session Mode: `npm run typecheck`, `npm test`, and `npm run build` (all passed, exit code 0).
+- Ran focused event-session integration suite: `node --test tests/event-session-runtime.test.mjs tests/event-session-selection-service.test.mjs tests/event-session-legacy-migration.test.mjs tests/room-board-event-scope.test.mjs` (15/15 passing).
+- Added `docs/us-009-event-session-validation-report.md` with auditable gate output and focused evidence for active-session selection, event-scoped room filtering/aggregates, signup event association, and legacy compatibility behavior.
+- Updated `plans/2026-02-15-event-session-mode.md` to mark US-009 complete and reference the new validation evidence artifact.
+- **Learnings:** Release-evidence stories for event features are clearer in review when full-gate results are paired with one focused integration command covering selection + filtering + compatibility in a single trace.
+---

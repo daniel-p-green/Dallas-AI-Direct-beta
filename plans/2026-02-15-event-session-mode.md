@@ -22,9 +22,10 @@ Add multi-event support with active session selection, event-scoped signup/room 
 - [x] US-006: Organizer admin UI for create-session, active-session switching, and check-in window validation/errors
 - [x] US-007: Ensure default active-event fallback keeps existing flows functional
 - [x] US-008: Docs updates for PRD/use-cases/user-stories/runtime-validation + migration runbook guidance
-- [ ] US-009: Final verification evidence (typecheck/test/build)
+- [x] US-009: Final verification evidence (typecheck/test/build)
 
 ## Notes
 - Preserve current flows through a default active event fallback.
 - Keep privacy boundary unchanged (`attendees_public` or event-safe projection).
 - Ensure event filter logic is deterministic and test covered.
+- US-009 release evidence captured in `docs/us-009-event-session-validation-report.md` (typecheck/test/build + focused event-session integration suite).
