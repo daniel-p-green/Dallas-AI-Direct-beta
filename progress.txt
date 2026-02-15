@@ -26,6 +26,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - When TypeScript libraries need runtime unit coverage under `node --test`, maintain a `.mjs` mirror module for direct test imports alongside the typed `.ts` source.
 - Event-session logic should be centralized in shared helpers (for example `lib/event-session.ts`) so signup and room APIs resolve active sessions consistently.
 - Abuse/Trust route protections should emit redacted structured logs plus mirrored inserts to `signup_risk_events` and `signup_moderation_queue` so suspicious traffic is auditable without raw PII.
+- Signup trust-decision logs use a versioned schema (`event: signup_trust_decision`, `schemaVersion`) with allow/flag/block outcomes so incident runbooks can parse decisions reliably across releases.
 - Deterministic 429 contracts should include explicit `X-RateLimit-*` and `Retry-After` headers derived from the same window snapshot used for enforcement.
 - Signup abuse telemetry switches should be modeled in the shared env config parser (TypeScript + `.mjs` mirror) so route behavior and test imports stay in lockstep.
 
@@ -237,4 +238,11 @@ Started: 2026-02-12 03:02 America/Chicago
 - Added duplicate-hardening and first-time-success regression assertions in `tests/signup-abuse-protections.test.mjs`; updated config parsing tests in `tests/signup-protection-config.test.mjs`.
 - Updated `docs/security.md` and `plans/2026-02-15-abuse-trust-layer-v1.md` with duplicate telemetry policy and story execution notes.
 - **Learnings:** Keep duplicate handling split between stable client contract (409 + safe message) and configurable abuse instrumentation so ops can tune telemetry without UX regressions.
+---
+## 2026-02-15 07:37 America/Chicago - US-006: Add redacted structured logging for signup trust decisions
+- Replaced signup abuse log event with stable structured trust-decision schema (`signup_trust_decision`, `schemaVersion: 2026-02-15.v1`) including decision, route outcome, risk score, triggered rules, request fingerprint hash, and redacted/hash-only identifiers.
+- Added explicit allow decision logging on successful signup path and ensured flagged/blocked decisions are emitted for suspicious, rate-limited, validation-failed, and duplicate-conflict flows (including duplicate telemetry-disabled path).
+- Updated docs (`docs/security.md`, `docs/runtime-validation.md`) and abuse-trust plan notes to reference the stable schema and incident-response validation checks.
+- Expanded logging/privacy tests in `tests/signup-abuse-protections.test.mjs` for schema stability, allow/flag/block emission, and no raw email/IP in structured log payloads.
+- **Learnings:** For operational incident response, versioning structured security logs in-code and docs together prevents parser drift while preserving privacy constraints.
 ---

@@ -21,6 +21,7 @@ type SignupPayload = {
 };
 
 type RiskEventType = 'flagged' | 'rate_limited' | 'blocked';
+type TrustDecision = 'allow' | 'flag' | 'block';
 
 type FingerprintWindow = {
   requestTimestamps: number[];
@@ -154,23 +155,33 @@ function validate(body: unknown): { ok: true; payload: SignupPayload } | { ok: f
   };
 }
 
-function emitSignupSecurityLog(payload: {
-  eventType: RiskEventType;
+function emitSignupTrustDecisionLog(payload: {
+  decision: TrustDecision;
+  routeOutcome: string;
   fingerprintHash: string;
   emailHash: string | null;
   emailRedacted: string | null;
+  ipHash: string | null;
+  userAgentHash: string | null;
   riskSignal: SignupRiskSignal;
+  metadata?: Record<string, unknown>;
 }) {
   console.info(
     JSON.stringify({
-      event: 'signup_security',
-      eventType: payload.eventType,
+      event: 'signup_trust_decision',
+      schemaVersion: '2026-02-15.v1',
+      route: '/api/attendees/signup',
+      decision: payload.decision,
+      routeOutcome: payload.routeOutcome,
       requestFingerprintHash: payload.fingerprintHash,
       emailHash: payload.emailHash,
       emailRedacted: payload.emailRedacted,
+      ipHash: payload.ipHash,
+      userAgentHash: payload.userAgentHash,
       riskScore: payload.riskSignal.riskScore,
       triggeredRules: payload.riskSignal.triggeredRules,
       malformedPayloadCount: payload.riskSignal.malformedPayloadCount,
+      metadata: payload.metadata ?? {},
     }),
   );
 }
@@ -249,12 +260,16 @@ async function recordRiskEvent(args: {
     `;
   }
 
-  emitSignupSecurityLog({
-    eventType: args.eventType,
+  emitSignupTrustDecisionLog({
+    decision: args.eventType === 'flagged' ? 'flag' : 'block',
+    routeOutcome: String(args.metadata.reason ?? args.eventType),
     fingerprintHash: args.fingerprintHash,
     emailHash,
     emailRedacted,
+    ipHash,
+    userAgentHash,
     riskSignal: args.riskSignal,
+    metadata: args.metadata,
   });
 }
 
@@ -407,6 +422,20 @@ export async function POST(request: Request) {
       )
     `;
 
+    emitSignupTrustDecisionLog({
+      decision: 'allow',
+      routeOutcome: 'signup_created',
+      fingerprintHash: requestFingerprintHash,
+      emailHash: hashValue(payload.email),
+      emailRedacted: redactEmail(payload.email),
+      ipHash: hashValue(request.headers.get('x-forwarded-for') ?? null),
+      userAgentHash: hashValue(request.headers.get('user-agent') ?? null),
+      riskSignal: preInsertRiskSignal,
+      metadata: {
+        activeEventId: activeEvent?.id ?? null,
+      },
+    });
+
     return NextResponse.json({
       ok: true,
       event: activeEvent ? { id: activeEvent.id, slug: activeEvent.slug, name: activeEvent.name } : null,
@@ -416,17 +445,17 @@ export async function POST(request: Request) {
       typeof error === 'object' && error !== null && 'code' in error && (error as { code?: string }).code === '23505';
 
     if (duplicate) {
-      if (config.abuseTelemetry.recordDuplicateAttempts) {
-        const requestFingerprint = getFingerprintKey(request, signupEmailForTelemetry);
-        const requestFingerprintHash = hashValue(requestFingerprint) ?? 'unknown-fingerprint';
-        const windowState = getRequestWindow(requestFingerprintHash, now, config.rateLimit.windowMs);
-        const riskSignal = computeSignupRiskSignal(config, {
-          honeypotTriggered: false,
-          requestCountInWindow: windowState.requestTimestamps.length,
-          malformedPayloadCountInWindow: windowState.malformedTimestamps.length,
-          duplicateTriggered: true,
-        });
+      const requestFingerprint = getFingerprintKey(request, signupEmailForTelemetry);
+      const requestFingerprintHash = hashValue(requestFingerprint) ?? 'unknown-fingerprint';
+      const windowState = getRequestWindow(requestFingerprintHash, now, config.rateLimit.windowMs);
+      const riskSignal = computeSignupRiskSignal(config, {
+        honeypotTriggered: false,
+        requestCountInWindow: windowState.requestTimestamps.length,
+        malformedPayloadCountInWindow: windowState.malformedTimestamps.length,
+        duplicateTriggered: true,
+      });
 
+      if (config.abuseTelemetry.recordDuplicateAttempts) {
         await recordRiskEvent({
           db: getDb(),
           eventType: 'flagged',
@@ -436,6 +465,21 @@ export async function POST(request: Request) {
           riskSignal,
           metadata: {
             reason: 'duplicate_email_conflict',
+          },
+        });
+      } else {
+        emitSignupTrustDecisionLog({
+          decision: 'flag',
+          routeOutcome: 'duplicate_email_conflict',
+          fingerprintHash: requestFingerprintHash,
+          emailHash: hashValue(signupEmailForTelemetry),
+          emailRedacted: redactEmail(signupEmailForTelemetry),
+          ipHash: hashValue(request.headers.get('x-forwarded-for') ?? null),
+          userAgentHash: hashValue(request.headers.get('user-agent') ?? null),
+          riskSignal,
+          metadata: {
+            reason: 'duplicate_email_conflict',
+            telemetryRecorded: false,
           },
         });
       }

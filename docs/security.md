@@ -24,6 +24,29 @@
 - Suspicious attempts are mirrored to moderation/audit tables with redacted structured logs.
 - Duplicate-email conflict telemetry is policy-controlled via `SIGNUP_RECORD_DUPLICATE_ATTEMPTS` to keep UX stable while allowing abuse signal tuning.
 
+### Signup trust decision structured log schema (v1)
+
+Incident response and abuse investigations rely on a stable JSON event emitted as `signup_trust_decision` with `schemaVersion: "2026-02-15.v1"`.
+
+Required keys:
+
+| Key | Description |
+| --- | --- |
+| `event` | Constant `signup_trust_decision` |
+| `schemaVersion` | Constant `2026-02-15.v1` |
+| `route` | Constant `/api/attendees/signup` |
+| `decision` | `allow`, `flag`, or `block` |
+| `routeOutcome` | Outcome reason (`signup_created`, `duplicate_email_conflict`, `rate_limit_exceeded`, etc.) |
+| `requestFingerprintHash` | SHA-256 hash of fingerprint tuple (IP header, user-agent, normalized email fallback) |
+| `emailHash` / `emailRedacted` | Hashed and masked email identifiers only (no raw email) |
+| `ipHash` / `userAgentHash` | Hashed request network/user-agent identifiers |
+| `riskScore` | Numeric risk score from scoring heuristics |
+| `triggeredRules` | Array of rule IDs contributing to score |
+| `malformedPayloadCount` | Malformed payload count within active window |
+| `metadata` | Additional non-PII context for incident triage |
+
+Redaction policy: raw `email` and raw `ip` must never appear in structured signup trust logs.
+
 ## Alpha password gate
 
 Use an optional password gate to reduce random traffic during demos.

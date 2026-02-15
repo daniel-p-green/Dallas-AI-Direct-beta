@@ -19,7 +19,9 @@ and facilitator decisions are fully auditable.
 10. Re-run generation and verify ordered scores/results are identical (reproducibility check).
 11. Open facilitator queue and approve one suggestion + reject one suggestion.
 12. Verify each decision creates exactly one immutable audit event with actor, action, and timestamp.
-13. Run mobile QR sanity validation and record evidence from `tests/ui-mobile-audit.md` and `tests/ui-mobile-audit.spec.ts`.
+13. Trigger one normal signup, one suspicious signup (honeypot or duplicate), and one blocked/rate-limited attempt; confirm `signup_trust_decision` logs include `decision` allow/flag/block with `schemaVersion: 2026-02-15.v1`.
+14. Confirm signup trust logs contain hashed/redacted identifiers only (`emailHash`, `emailRedacted`, `ipHash`) and no raw email/IP values.
+15. Run mobile QR sanity validation and record evidence from `tests/ui-mobile-audit.md` and `tests/ui-mobile-audit.spec.ts`.
 
 ## Expected outputs
 

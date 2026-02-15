@@ -50,7 +50,7 @@ test('valid first-time signup success response contract remains stable', () => {
   assert.match(route, /return NextResponse\.json\(\{[\s\S]*ok: true/);
 });
 
-test('signup risk persistence and logs remain redacted (no raw email columns in abuse tables)', () => {
+test('signup risk persistence remains redacted (no raw email columns in abuse tables)', () => {
   const route = read('app/api/attendees/signup/route.ts');
 
   const riskInsertStart = route.indexOf('insert into public.signup_risk_events');
@@ -71,8 +71,36 @@ test('signup risk persistence and logs remain redacted (no raw email columns in 
   assert.match(queueInsertSection, /email_hash/);
   assert.match(queueInsertSection, /email_redacted/);
   assert.doesNotMatch(queueInsertSection, /\n\s*email,\n/);
+});
 
-  assert.match(route, /event: 'signup_security'/);
-  assert.match(route, /emailRedacted/);
+test('signup trust decision logs use stable schema and emit allow/flag/block decisions', () => {
+  const route = read('app/api/attendees/signup/route.ts');
+
+  assert.match(route, /event: 'signup_trust_decision'/);
+  assert.match(route, /schemaVersion: '2026-02-15\.v1'/);
+  assert.match(route, /route: '\/api\/attendees\/signup'/);
+  assert.match(route, /decision: 'allow'/);
+  assert.match(route, /decision: args\.eventType === 'flagged' \? 'flag' : 'block'/);
+  assert.match(route, /decision: 'flag'/);
+  assert.match(route, /routeOutcome/);
+  assert.match(route, /riskScore/);
+  assert.match(route, /triggeredRules/);
+  assert.match(route, /requestFingerprintHash/);
   assert.match(route, /reason: 'duplicate_email_conflict'/);
+});
+
+test('signup trust decision logs redact sensitive values and never log raw email/ip', () => {
+  const route = read('app/api/attendees/signup/route.ts');
+
+  const loggerStart = route.indexOf('function emitSignupTrustDecisionLog');
+  const loggerEnd = route.indexOf('async function recordRiskEvent', loggerStart);
+  const loggerSection = route.slice(loggerStart, loggerEnd);
+
+  assert.ok(loggerStart > -1 && loggerEnd > loggerStart);
+  assert.match(loggerSection, /emailHash/);
+  assert.match(loggerSection, /emailRedacted/);
+  assert.match(loggerSection, /ipHash/);
+  assert.match(loggerSection, /userAgentHash/);
+  assert.doesNotMatch(loggerSection, /"email"\s*:/i);
+  assert.doesNotMatch(loggerSection, /"ip"\s*:/i);
 });
