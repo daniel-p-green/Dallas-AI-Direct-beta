@@ -12,6 +12,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - Database changes are tracked as raw SQL migrations under `db/migrations/`, with schema integrity guarded by `node:test` assertions over migration SQL contracts.
 - Abuse/audit persistence should store hashed or masked identifiers (`*_hash`, redacted tokens) and avoid raw PII columns in auxiliary tables.
 - Migration contract tests should assert indexed column order (not only index names) to lock intended query paths for queue and ranking endpoints.
+- Deterministic ranking logic should live in pure `lib/*.mjs` utilities with explicit weight constants and fixed `now` injection for reproducible tests.
 
 ---
 ## 2026-02-12 03:03 America/Chicago - US-001: Create Geist-aligned brand guidelines document
@@ -78,4 +79,10 @@ Started: 2026-02-12 03:02 America/Chicago
 - Extended index assertions to verify key facilitator queue/top-N index column orderings on `status`, `created_at`, `run_id`, and `attendee_id` paths.
 - Re-ran verification gates to confirm schema contract checks stay green.
 - **Learnings:** Contract tests should validate not just index names but indexed column ordering for predictable query behavior.
+---
+## 2026-02-15 03:34 America/Chicago - US-002: Implement deterministic match scoring service
+- Added pure scoring module `lib/match-scoring.mjs` with explicit weights, normalized topic overlap, comfort proximity, consent-aware visibility scoring, recency weighting, and deterministic tie-break ordering.
+- Exposed reusable helpers (`calculateOverlapScore`, `calculateComfortProximityScore`, `calculateConsentVisibilityScore`, `calculateRecencyScore`, `calculateMatchScore`, `rankMatches`) for route handler integration.
+- Added `tests/match-scoring.test.mjs` covering deterministic repeatability, full formula contribution checks, and enforced tie-break behavior (`total_score desc`, `overlap desc`, `candidate id asc`).
+- **Learnings:** Injecting a fixed `now` timestamp into pure ranking helpers is essential for stable deterministic scoring tests when recency contributes to totals.
 ---
