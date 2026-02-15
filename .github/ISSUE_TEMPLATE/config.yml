@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Governance and handoff
+    url: https://github.com/daniel-p-green/Dallas-AI-Direct-beta/blob/main/GOVERNANCE.md
+    about: Read maintainer transition intent and operating expectations.

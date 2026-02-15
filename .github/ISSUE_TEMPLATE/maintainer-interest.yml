@@ -1,0 +1,33 @@
+name: Maintainer interest
+description: Signal interest in helping maintain Dallas AI Direct
+title: "maintainer: "
+labels: ["maintainers"]
+body:
+  - type: textarea
+    id: intro
+    attributes:
+      label: Intro
+      description: Tell us who you are and your Dallas AI context
+    validations:
+      required: true
+  - type: textarea
+    id: strengths
+    attributes:
+      label: Areas you can own
+      placeholder: runtime, frontend, docs, security, devrel
+    validations:
+      required: true
+  - type: textarea
+    id: availability
+    attributes:
+      label: Availability
+    validations:
+      required: true
+  - type: checkboxes
+    id: commitments
+    attributes:
+      label: Maintainer commitments
+      options:
+        - label: I will protect privacy/data-boundary guarantees
+        - label: I will include verification evidence in PRs
+        - label: I will keep docs aligned with implementation

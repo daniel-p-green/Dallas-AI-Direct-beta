@@ -9,6 +9,7 @@ Reference implementation for a governed, community-owned attendee directory buil
 - License: MIT (`LICENSE`)
 - Intended maintainers: Dallas AI developer community
 - Handoff/process notes: `GOVERNANCE.md`
+- Contribution guide: `CONTRIBUTING.md`
 
 ## Executive Summary
 
@@ -164,6 +165,53 @@ This implementation acts as a projection-bound identity and capability mapping l
 This sprint produces a working artifact, not a slide deck.
 
 ---
+
+## Quickstart (10 minutes)
+
+### Prerequisites
+- Node 20+
+- A Neon Postgres database
+
+### 1) Install and configure
+
+```bash
+npm ci
+cp .env.example .env.local # or create .env.local manually
+```
+
+Set:
+
+```bash
+DATABASE_URL=postgres://...
+```
+
+### 2) Apply database schema + policies
+
+Follow:
+- `docs/data-model.md`
+- `docs/rls-policies.md`
+
+### 3) Run locally
+
+```bash
+npm run dev
+```
+
+Open:
+- `http://localhost:3000/signup`
+- `http://localhost:3000/room`
+
+### 4) Validate before demo
+
+```bash
+npm run typecheck
+npm test
+npm run build
+```
+
+Also run the privacy/runtime checks in:
+- `docs/runtime-validation.md`
+- `ops/preflight.md`
 
 ## Setup Overview (High level)
 
