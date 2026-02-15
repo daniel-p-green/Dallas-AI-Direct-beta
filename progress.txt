@@ -15,6 +15,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - Deterministic ranking logic should live in pure `lib/*.mjs` utilities with explicit weight constants and fixed `now` injection for reproducible tests.
 - For write-heavy API routes using `postgres` tagged templates, explicit `begin`/`commit`/`rollback` statements provide straightforward transactional control that keeps TypeScript checks simple.
 - Queue/list APIs should enforce deterministic ordering with `ORDER BY created_at DESC, id ASC` to keep pagination stable across repeated facilitator fetches.
+- Decision/update APIs should lock target rows with `SELECT ... FOR UPDATE` and gate transitions (`status='suggested'`) before writing immutable audit events.
 
 ---
 ## 2026-02-12 03:03 America/Chicago - US-001: Create Geist-aligned brand guidelines document
@@ -103,4 +104,13 @@ Started: 2026-02-12 03:02 America/Chicago
 - Added `tests/facilitator-queue-endpoint.test.mjs` to validate pagination contract, deterministic filter/query behavior, join/projection constraints, and privacy guardrails.
 - Updated plan file `plans/2026-02-15-invite-match-engine.md` with US-004 completion checklist.
 - **Learnings:** For facilitator review APIs, building profile projections directly from joined attendee records ensures consent logic is enforced consistently without leaking private fields.
+---
+## 2026-02-15 04:02 America/Chicago - US-005: Add approve/reject decision endpoint with immutable audit events
+- Added `POST` and `PATCH` endpoint at `app/api/matches/[suggestionId]/decision/route.ts` to accept facilitator decisions with strict action validation (`approve|reject`) and required actor metadata.
+- Implemented transactional decision flow: row lock (`FOR UPDATE`), transition guardrail (`suggested` only), status update, and immutable `match_decision_events` insert with reason/metadata payload.
+- Added finalized-suggestion guardrails returning `409` for invalid transitions/replays and `404` for unknown suggestions.
+- Returned privacy-safe decision payload that includes suggestion/run/status/audit metadata only (no private attendee fields).
+- Added `tests/match-decision-endpoint.test.mjs` contract tests for action validation, atomic update+audit write checks, transition guardrails, and privacy boundary assertions.
+- Updated `plans/2026-02-15-invite-match-engine.md` with US-005 completion checklist.
+- **Learnings:** For replay-safe facilitator decisions, explicit row locking plus status guard checks in the same transaction keeps status transitions deterministic and audit trails one-event-per-decision.
 ---

@@ -29,3 +29,9 @@ Implement deterministic attendee matching, facilitator approval workflow, audit 
 - [x] Join suggestions to source + matched attendee records and project consent-aware public-safe fields
 - [x] Ensure queue response contract is stable for admin UI rendering metadata
 - [x] Add endpoint tests covering pagination/filtering determinism and no-email privacy boundary
+
+## Story focus (US-005)
+- [x] Add `POST`/`PATCH` decision endpoint at `/api/matches/[suggestionId]/decision` with strict `approve|reject` validation
+- [x] Enforce transition guardrails (`suggested` -> `approved|rejected`) and return non-2xx for finalized suggestions
+- [x] Persist match status update + immutable `match_decision_events` row in a single transaction
+- [x] Return facilitator-safe response payload with no private attendee fields and add contract tests
