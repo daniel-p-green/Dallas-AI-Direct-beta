@@ -19,6 +19,7 @@ This folder owns the README demo video source for Dallas AI Direct.
 ## Usage (from repo root)
 
 ```bash
+npm run demo:remotion:install
 npm run demo:remotion:preview
 npm run demo:remotion:render
 npm run demo:remotion:still

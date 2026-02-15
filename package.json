@@ -8,9 +8,10 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "node --test tests/*.test.mjs",
-    "demo:remotion:preview": "npm --prefix demo/remotion run preview",
-    "demo:remotion:render": "npm --prefix demo/remotion run render",
-    "demo:remotion:still": "npm --prefix demo/remotion run still"
+    "demo:remotion:install": "npm --prefix demo/remotion install",
+    "demo:remotion:preview": "npm run demo:remotion:install && npm --prefix demo/remotion run preview",
+    "demo:remotion:render": "npm run demo:remotion:install && npm --prefix demo/remotion run render",
+    "demo:remotion:still": "npm run demo:remotion:install && npm --prefix demo/remotion run still"
   },
   "dependencies": {
     "geist": "^1.7.0",

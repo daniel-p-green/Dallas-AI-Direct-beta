@@ -29,15 +29,26 @@ test('remotion demo scaffold files exist under demo/remotion', () => {
 test('root package scripts expose reproducible remotion commands', () => {
   const packageJson = readJson(path.join(repoRoot, 'package.json'));
 
-  assert.equal(packageJson.scripts['demo:remotion:preview'], 'npm --prefix demo/remotion run preview');
-  assert.equal(packageJson.scripts['demo:remotion:render'], 'npm --prefix demo/remotion run render');
-  assert.equal(packageJson.scripts['demo:remotion:still'], 'npm --prefix demo/remotion run still');
+  assert.equal(packageJson.scripts['demo:remotion:install'], 'npm --prefix demo/remotion install');
+  assert.equal(
+    packageJson.scripts['demo:remotion:preview'],
+    'npm run demo:remotion:install && npm --prefix demo/remotion run preview',
+  );
+  assert.equal(
+    packageJson.scripts['demo:remotion:render'],
+    'npm run demo:remotion:install && npm --prefix demo/remotion run render',
+  );
+  assert.equal(
+    packageJson.scripts['demo:remotion:still'],
+    'npm run demo:remotion:install && npm --prefix demo/remotion run still',
+  );
 });
 
 test('demo/remotion README documents plan ownership and usage', () => {
   const readme = fs.readFileSync(path.join(repoRoot, 'demo/remotion/README.md'), 'utf8');
 
   assert.match(readme, /plans\/2026-02-15-remotion-readme-demo\.md/);
+  assert.match(readme, /npm run demo:remotion:install/);
   assert.match(readme, /npm run demo:remotion:render/);
   assert.match(readme, /Keep demo rendering code isolated from the Next\.js app root\./);
 });

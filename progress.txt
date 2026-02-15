@@ -20,6 +20,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - Backward-compatible Postgres migrations should guard additive column changes with `information_schema.columns` checks to keep reruns safe across partially migrated environments.
 - Privacy regression tests for API routes should assert both payload safety (no `email`) and query-shape safety (no `SELECT *` over sensitive tables) to catch leak regressions early.
 - Tool-specific demo workspaces should live under `demo/<tool>/` with root-level `npm --prefix` proxy scripts to keep app-root scripts stable.
+- For nested demo workspaces, root proxy scripts should include an explicit install step so local CLIs (for example `remotion`) are resolvable in fresh environments.
 - Documentation stories should ship with `node:test` contract assertions over required phrases/workflows so runtime-validation and PRD drift is caught by `npm test`.
 - When TypeScript libraries need runtime unit coverage under `node --test`, maintain a `.mjs` mirror module for direct test imports alongside the typed `.ts` source.
 - Event-session logic should be centralized in shared helpers (for example `lib/event-session.ts`) so signup and room APIs resolve active sessions consistently.
@@ -194,4 +195,11 @@ Started: 2026-02-12 03:02 America/Chicago
 - Hardened duplicate handling to emit abuse telemetry (`duplicate_email_conflict`) while preserving existing 409 response contract.
 - Added/updated tests: `tests/signup-protection-config.test.mjs` for parsing/validation thresholds and `tests/signup-abuse-protections.test.mjs` for route-level 429/moderation/audit protections.
 - **Learnings:** For abuse controls in this codebase, route-level risk decisions should share one typed config contract and always write redacted audit telemetry so tuning and incident review can happen without exposing PII.
+---
+## 2026-02-15 07:04 America/Chicago - US-001: Scaffold isolated Remotion demo workspace under demo/remotion (retry wiring hardening)
+- Hardened root Remotion proxy scripts in `package.json` with `demo:remotion:install` and install-first execution for preview/render/still to make CLI resolution reproducible on fresh checkouts.
+- Updated `tests/remotion-scaffold.test.mjs` to enforce install script presence and install-first command wiring for all root Remotion commands.
+- Updated `demo/remotion/README.md` usage to include install command and updated plan checklist in `plans/2026-02-15-remotion-readme-demo.md`.
+- Re-ran verification gates: `npm run typecheck`, `npm test`, `npm run build` (all passing).
+- **Learnings:** Nested tool workspaces need explicit install-first root script wrappers to avoid `command not found` failures in clean environments.
 ---
