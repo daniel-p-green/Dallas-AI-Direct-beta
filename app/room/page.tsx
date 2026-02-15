@@ -22,6 +22,7 @@ type RoomAggregates = {
   attendeeCount: number;
   averageComfort: number;
   highComfortPct: number;
+  comfortDistribution?: Record<`level${1 | 2 | 3 | 4 | 5}`, number>;
 };
 
 const seed: Attendee[] = [

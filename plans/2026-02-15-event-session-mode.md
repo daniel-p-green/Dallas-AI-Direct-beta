@@ -18,7 +18,7 @@ Add multi-event support with active session selection, event-scoped signup/room 
 - [x] US-002: Implement backward-compatible data migration for existing attendee records
 - [x] US-003: Active-event selection service/defaults (shared resolver + single-active setter)
 - [x] US-004: Signup event association + active check-in window enforcement (`403 CHECK_IN_WINDOW_CLOSED`)
-- [x] US-005: Room board event filtering + aggregates
+- [x] US-005: Room board event filtering + aggregates (event-only active-session query + comfort distribution aggregate)
 - [ ] US-006+: Remaining organizer/session UX and docs stories
 
 ## Notes

@@ -34,10 +34,10 @@ test('public room API scopes attendee feed by selected or active event and retur
 
   assert.match(route, /const eventSlug = url\.searchParams\.get\('event'\)/);
   assert.match(route, /where event_id = \$\{activeEvent\.id\}/);
-  assert.match(route, /or event_id is null/);
   assert.match(route, /where event_id is null/);
   assert.match(route, /aggregates:/);
   assert.match(route, /highComfortPct/);
+  assert.match(route, /comfortDistribution/);
 });
 
 test('room UI renders active session context and server-provided scoped aggregates', () => {

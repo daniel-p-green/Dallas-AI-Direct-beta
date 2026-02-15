@@ -36,7 +36,6 @@ export async function GET(request: Request) {
             created_at
           from attendees_public
           where event_id = ${activeEvent.id}
-             or event_id is null
           order by created_at desc
           limit 200
         `
@@ -79,6 +78,20 @@ export async function GET(request: Request) {
       attendeeCount > 0
         ? Math.round((data.filter((attendee) => attendee.ai_comfort_level >= 4).length / attendeeCount) * 100)
         : 0;
+    const comfortDistribution = data.reduce<Record<`level${1 | 2 | 3 | 4 | 5}`, number>>(
+      (distribution, attendee) => {
+        const level = Math.min(5, Math.max(1, attendee.ai_comfort_level)) as 1 | 2 | 3 | 4 | 5;
+        distribution[`level${level}`] += 1;
+        return distribution;
+      },
+      {
+        level1: 0,
+        level2: 0,
+        level3: 0,
+        level4: 0,
+        level5: 0
+      }
+    );
 
     return NextResponse.json({
       data,
@@ -86,7 +99,8 @@ export async function GET(request: Request) {
       aggregates: {
         attendeeCount,
         averageComfort,
-        highComfortPct
+        highComfortPct,
+        comfortDistribution
       }
     });
   } catch {

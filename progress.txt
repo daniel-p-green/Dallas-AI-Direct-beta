@@ -4,6 +4,7 @@ Task: Project: Dallas AI Direct Alpha. Task: Create a minimal brand implementati
 Started: 2026-02-12 03:02 America/Chicago
 
 ## Codebase Patterns
+- Room-board event scoping should use dual query branches: active/selected session reads `event_id = activeEvent.id`, while legacy fallback reads only `event_id is null` to avoid mixing session metrics.
 - Operational runbook stories should add node:test phrase-contract coverage across both `docs/` and `ops/` artifacts so runtime/incident-response guidance stays executable and drift-resistant.
 - Final verification stories should pair full gate runs (`typecheck`/`test`/`build`) with one focused story-critical suite to make acceptance evidence auditable in PR review.
 - Abuse-risk heuristics should be implemented in a shared pure scorer module (`lib/*`) and mirrored with `.mjs` for direct `node:test` imports when route handlers need deterministic scoring assertions.
@@ -346,4 +347,12 @@ Started: 2026-02-12 03:02 America/Chicago
 - Updated runtime-validation docs and event-session plan tracking to document the defined outside-window error contract.
 - Added/updated source-contract tests in `tests/signup-abuse-protections.test.mjs` and `tests/event-session-runtime.test.mjs` for check-in window gating + event-scoped signup behavior.
 - **Learnings:** For event-scoped signup stories in this repo, codifying explicit error codes in both route source and phrase-contract tests keeps client handling and operational validation stable.
+---
+## 2026-02-15 11:58 America/Chicago - US-005: Add event-scoped room board API filtering and aggregates
+- Updated `app/api/attendees/public/route.ts` so active/selected session reads are strictly `event_id = activeEvent.id`, with legacy fallback only when no active session (`event_id is null`).
+- Added scoped aggregate enrichment by returning `comfortDistribution` (levels 1-5) alongside attendee count, average comfort, and high-comfort percentage.
+- Kept privacy boundary intact by continuing explicit public-safe projection fields only (no email fields).
+- Added/updated tests: `tests/room-board-event-scope.test.mjs`, `tests/event-session-runtime.test.mjs`, and `tests/event-session-legacy-migration.test.mjs`.
+- Updated plan tracking in `plans/2026-02-15-event-session-mode.md` for US-005 details.
+- **Learnings:** Event-scoped room metrics should avoid blending `NULL event_id` legacy rows into active-session reads; keep that compatibility path in a separate no-active-event branch.
 ---

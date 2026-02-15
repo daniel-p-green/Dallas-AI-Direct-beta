@@ -32,8 +32,10 @@ test('migration is idempotent and rollout-safe for reruns', () => {
   assert.match(sql, /where event_id is null/i);
 });
 
-test('room-board reads preserve legacy attendee visibility during rollout', () => {
+test('room-board reads preserve legacy attendee visibility when no active event is selected', () => {
   const route = read('app/api/attendees/public/route.ts');
 
-  assert.match(route, /where event_id = \$\{activeEvent\.id\}\s+or event_id is null/);
+  assert.match(route, /const activeEvent = await resolveEventSessionForRequest\(db, eventSlug\)/);
+  assert.match(route, /where event_id = \$\{activeEvent\.id\}/);
+  assert.match(route, /where event_id is null/);
 });
