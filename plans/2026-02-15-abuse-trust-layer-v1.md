@@ -26,3 +26,5 @@ Add signup route protections (rate limit + risk heuristics), suspicious-event mo
 - US-005: Hardened duplicate-email conflict flow to preserve stable 409 UX contract, use captured signup email/fingerprint in telemetry, and gate duplicate event recording behind configurable policy (`SIGNUP_RECORD_DUPLICATE_ATTEMPTS`) with regression tests for first-time success behavior.
 
 - US-006: Added stable signup trust decision logging schema (`signup_trust_decision`, `schemaVersion: 2026-02-15.v1`) with explicit allow/flag/block decision coverage, redacted/hash-only identifiers, route outcome metadata, and documentation updates for runtime incident response checks.
+
+- US-007: Added `/api/moderation/queue` read/update API for suspicious signup review with status filtering + pagination, risk-event linkage (reason/timestamps), redacted-safe identifiers, and persistence-backed resolution updates.

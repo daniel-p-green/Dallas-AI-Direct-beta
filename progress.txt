@@ -29,6 +29,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - Signup trust-decision logs use a versioned schema (`event: signup_trust_decision`, `schemaVersion`) with allow/flag/block outcomes so incident runbooks can parse decisions reliably across releases.
 - Deterministic 429 contracts should include explicit `X-RateLimit-*` and `Retry-After` headers derived from the same window snapshot used for enforcement.
 - Signup abuse telemetry switches should be modeled in the shared env config parser (TypeScript + `.mjs` mirror) so route behavior and test imports stay in lockstep.
+- Moderation review endpoints should join queue rows with linked risk-event rows and return only redacted/hash identifiers to keep triage context complete without exposing PII.
 
 ---
 ## 2026-02-12 03:03 America/Chicago - US-001: Create Geist-aligned brand guidelines document
@@ -245,4 +246,12 @@ Started: 2026-02-12 03:02 America/Chicago
 - Updated docs (`docs/security.md`, `docs/runtime-validation.md`) and abuse-trust plan notes to reference the stable schema and incident-response validation checks.
 - Expanded logging/privacy tests in `tests/signup-abuse-protections.test.mjs` for schema stability, allow/flag/block emission, and no raw email/IP in structured log payloads.
 - **Learnings:** For operational incident response, versioning structured security logs in-code and docs together prevents parser drift while preserving privacy constraints.
+---
+## 2026-02-15 07:44 America/Chicago - US-007: Add moderation queue API/read model for suspicious signup review
+- Added `app/api/moderation/queue/route.ts` with `GET` queue listing (status filters + pagination) and `PATCH` resolution updates for moderation workflow state.
+- Joined moderation queue rows to linked `signup_risk_events` so response items include event linkage (`risk_event_id`, event type, triggered rules, timestamps) for review drill-down.
+- Kept payloads redacted-safe by exposing only hash/redacted identifiers (`request_fingerprint_hash`, `email_redacted`) and excluding private attendee fields.
+- Added `tests/moderation-queue-api.test.mjs` for queue read model contract, redaction/privacy boundary, and status update persistence assertions.
+- Updated `plans/2026-02-15-abuse-trust-layer-v1.md` with US-007 execution notes.
+- **Learnings:** Moderation queue APIs in this repo should return risk-event linkage inline so ops reviewers can triage without secondary joins while preserving redacted-only payloads.
 ---
