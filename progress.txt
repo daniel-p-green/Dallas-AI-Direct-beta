@@ -11,6 +11,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - `npm run typecheck` scans `tests/**/*.ts`; browser-spec TypeScript files require installed type dependencies (for example `@playwright/test`) to keep CI green.
 - Database changes are tracked as raw SQL migrations under `db/migrations/`, with schema integrity guarded by `node:test` assertions over migration SQL contracts.
 - Abuse/audit persistence should store hashed or masked identifiers (`*_hash`, redacted tokens) and avoid raw PII columns in auxiliary tables.
+- Migration contract tests should assert indexed column order (not only index names) to lock intended query paths for queue and ranking endpoints.
 
 ---
 ## 2026-02-12 03:03 America/Chicago - US-001: Create Geist-aligned brand guidelines document
@@ -71,4 +72,10 @@ Started: 2026-02-12 03:02 America/Chicago
 - Added `tests/abuse-trust-schema.test.mjs` to verify table contracts, indexes, and redaction/hash schema requirements.
 - Updated `docs/data-model.md` with abuse/trust table documentation and privacy rules.
 - **Learnings:** For security-focused schema stories, explicit migration-level check constraints plus source-contract tests provide strong guardrails before runtime code lands.
+---
+## 2026-02-15 03:30 America/Chicago - US-001: Harden match schema contract coverage
+- Strengthened `tests/match-engine-schema.test.mjs` to assert deterministic-run metadata columns (`algorithm_version`, `scoring_weights`, `run_metadata`) and auditable timestamp coverage across runs/matches/decision events.
+- Extended index assertions to verify key facilitator queue/top-N index column orderings on `status`, `created_at`, `run_id`, and `attendee_id` paths.
+- Re-ran verification gates to confirm schema contract checks stay green.
+- **Learnings:** Contract tests should validate not just index names but indexed column ordering for predictable query behavior.
 ---
