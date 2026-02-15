@@ -11,7 +11,9 @@
     "demo:remotion:install": "npm --prefix demo/remotion install",
     "demo:remotion:preview": "npm run demo:remotion:install && npm --prefix demo/remotion run preview",
     "demo:remotion:render": "npm run demo:remotion:install && npm --prefix demo/remotion run render",
-    "demo:remotion:still": "npm run demo:remotion:install && npm --prefix demo/remotion run still"
+    "demo:remotion:still": "npm run demo:remotion:install && npm --prefix demo/remotion run still",
+    "demo:remotion:check": "npm run demo:remotion:install && npm --prefix demo/remotion run check:artifacts",
+    "demo:remotion:generate": "npm run demo:remotion:render && npm run demo:remotion:still && npm run demo:remotion:check"
   },
   "dependencies": {
     "geist": "^1.7.0",

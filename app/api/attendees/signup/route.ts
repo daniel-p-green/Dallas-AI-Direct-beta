@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { getDb, hasDatabaseUrl } from '../../../../lib/db/server';
 import { getSignupProtectionConfig } from '../../../../lib/signup-protection-config';
 import { computeSignupRiskSignal, type SignupRiskSignal } from '../../../../lib/signup-risk-scoring';
-import { getActiveEventSession } from '../../../../lib/event-session';
+import { resolveActiveEventSession } from '../../../../lib/event-session';
 
 type SignupPayload = {
   name: string;
@@ -114,6 +114,34 @@ function getRateLimitHeaders(snapshot: RateLimitSnapshot) {
     'X-RateLimit-Reset': String(Math.floor(snapshot.resetAtEpochMs / 1000)),
     'Retry-After': String(snapshot.retryAfterSeconds),
   };
+}
+
+function toEpochMs(value: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function isWithinCheckInWindow(args: {
+  nowEpochMs: number;
+  checkInWindowStart: string | null;
+  checkInWindowEnd: string | null;
+}) {
+  const windowStart = toEpochMs(args.checkInWindowStart);
+  const windowEnd = toEpochMs(args.checkInWindowEnd);
+
+  if (windowStart !== null && args.nowEpochMs < windowStart) {
+    return false;
+  }
+
+  if (windowEnd !== null && args.nowEpochMs > windowEnd) {
+    return false;
+  }
+
+  return true;
 }
 
 function validate(body: unknown): { ok: true; payload: SignupPayload } | { ok: false; message: string } {
@@ -387,7 +415,24 @@ export async function POST(request: Request) {
     }
 
     const db = getDb();
-    const activeEvent = await getActiveEventSession(db);
+    const activeEvent = await resolveActiveEventSession(db);
+
+    if (
+      activeEvent &&
+      !isWithinCheckInWindow({
+        nowEpochMs: now,
+        checkInWindowStart: activeEvent.check_in_window_start,
+        checkInWindowEnd: activeEvent.check_in_window_end,
+      })
+    ) {
+      return NextResponse.json(
+        {
+          error: 'Check-in is closed for the active event session.',
+          code: 'CHECK_IN_WINDOW_CLOSED',
+        },
+        { status: 403 },
+      );
+    }
 
     await db`
       insert into attendees (

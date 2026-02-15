@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getDb, hasDatabaseUrl } from '../../../lib/db/server';
-import { getActiveEventSession } from '../../../lib/event-session';
+import { resolveActiveEventSession, setActiveEventSession } from '../../../lib/event-session';
 
 type EventRow = {
   id: string;
@@ -31,6 +31,13 @@ type ActivateEventPayload = {
   slug?: string;
 };
 
+type EventWindowInput = {
+  startsAt: string | null;
+  endsAt: string | null;
+  checkInWindowStart: string | null;
+  checkInWindowEnd: string | null;
+};
+
 function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
@@ -42,6 +49,56 @@ function optionalDate(value: unknown) {
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
+}
+
+function toTimestamp(value: string | null) {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+function validateEventWindows(input: EventWindowInput) {
+  const startsAtTs = toTimestamp(input.startsAt);
+  const endsAtTs = toTimestamp(input.endsAt);
+  const checkInStartTs = toTimestamp(input.checkInWindowStart);
+  const checkInEndTs = toTimestamp(input.checkInWindowEnd);
+
+  if (input.startsAt && startsAtTs === null) {
+    return 'starts_at must be a valid datetime.';
+  }
+
+  if (input.endsAt && endsAtTs === null) {
+    return 'ends_at must be a valid datetime.';
+  }
+
+  if (input.checkInWindowStart && checkInStartTs === null) {
+    return 'check_in_window_start must be a valid datetime.';
+  }
+
+  if (input.checkInWindowEnd && checkInEndTs === null) {
+    return 'check_in_window_end must be a valid datetime.';
+  }
+
+  if (startsAtTs !== null && endsAtTs !== null && startsAtTs > endsAtTs) {
+    return 'starts_at must be before ends_at.';
+  }
+
+  if (checkInStartTs !== null && checkInEndTs !== null && checkInStartTs > checkInEndTs) {
+    return 'check_in_window_start must be before check_in_window_end.';
+  }
+
+  if (startsAtTs !== null && checkInStartTs !== null && checkInStartTs < startsAtTs) {
+    return 'check_in_window_start must be on or after starts_at.';
+  }
+
+  if (endsAtTs !== null && checkInEndTs !== null && checkInEndTs > endsAtTs) {
+    return 'check_in_window_end must be on or before ends_at.';
+  }
+
+  return null;
 }
 
 export async function GET() {
@@ -67,7 +124,7 @@ export async function GET() {
       limit 200
     `;
 
-    const active = rows.find((row) => row.is_active) ?? null;
+    const active = await resolveActiveEventSession(db);
 
     return NextResponse.json({
       active,
@@ -101,6 +158,21 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'slug and name are required.' }, { status: 400 });
       }
 
+      const startsAt = optionalDate(payload.starts_at);
+      const endsAt = optionalDate(payload.ends_at);
+      const checkInWindowStart = optionalDate(payload.check_in_window_start);
+      const checkInWindowEnd = optionalDate(payload.check_in_window_end);
+      const windowError = validateEventWindows({
+        startsAt,
+        endsAt,
+        checkInWindowStart,
+        checkInWindowEnd,
+      });
+
+      if (windowError) {
+        return NextResponse.json({ error: windowError }, { status: 422 });
+      }
+
       const shouldActivate = payload.is_active !== false;
 
       await db`begin`;
@@ -122,10 +194,10 @@ export async function POST(request: Request) {
           values (
             ${slug},
             ${name},
-            ${optionalDate(payload.starts_at)},
-            ${optionalDate(payload.ends_at)},
-            ${optionalDate(payload.check_in_window_start)},
-            ${optionalDate(payload.check_in_window_end)},
+            ${startsAt},
+            ${endsAt},
+            ${checkInWindowStart},
+            ${checkInWindowEnd},
             ${shouldActivate}
           )
         `;
@@ -133,52 +205,29 @@ export async function POST(request: Request) {
         await db`commit`;
       } catch (error) {
         await db`rollback`;
+
+        if (typeof error === 'object' && error && 'code' in error && error.code === '23505') {
+          return NextResponse.json({ error: 'Event session slug already exists.' }, { status: 409 });
+        }
+
         throw error;
       }
 
-      const active = await getActiveEventSession(db);
+      const active = await resolveActiveEventSession(db);
       return NextResponse.json({ ok: true, active });
     }
 
     if (body.action === 'activate') {
       const payload = body as ActivateEventPayload;
-      const eventId = typeof payload.event_id === 'string' ? payload.event_id.trim() : '';
-      const slug = typeof payload.slug === 'string' ? payload.slug.trim() : '';
+      const active = await setActiveEventSession(db, {
+        eventId: payload.event_id,
+        slug: payload.slug,
+      });
 
-      if (!eventId && !slug) {
-        return NextResponse.json({ error: 'event_id or slug is required.' }, { status: 400 });
+      if (!active) {
+        return NextResponse.json({ error: 'Event session not found.' }, { status: 404 });
       }
 
-      await db`begin`;
-      try {
-        await db`update public.events set is_active = false where is_active = true`;
-
-        const updated = eventId
-          ? await db<{ id: string }[]>`
-              update public.events
-              set is_active = true
-              where id = ${eventId}
-              returning id
-            `
-          : await db<{ id: string }[]>`
-              update public.events
-              set is_active = true
-              where slug = ${slug}
-              returning id
-            `;
-
-        if (updated.length === 0) {
-          await db`rollback`;
-          return NextResponse.json({ error: 'Event session not found.' }, { status: 404 });
-        }
-
-        await db`commit`;
-      } catch (error) {
-        await db`rollback`;
-        throw error;
-      }
-
-      const active = await getActiveEventSession(db);
       return NextResponse.json({ ok: true, active });
     }
 

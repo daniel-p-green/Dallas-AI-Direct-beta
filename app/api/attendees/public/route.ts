@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getDb, hasDatabaseUrl } from '../../../../lib/db/server';
-import { getActiveEventSession } from '../../../../lib/event-session';
+import { resolveEventSessionForRequest } from '../../../../lib/event-session';
 
 type PublicAttendeeRow = {
   name: string | null;
@@ -22,16 +22,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const eventSlug = url.searchParams.get('event');
 
-    const eventRows = eventSlug
-      ? await db<{ id: string; slug: string; name: string }[]>`
-          select id, slug, name
-          from public.events
-          where slug = ${eventSlug}
-          limit 1
-        `
-      : [];
-
-    const activeEvent = eventRows[0] ?? (await getActiveEventSession(db));
+    const activeEvent = await resolveEventSessionForRequest(db, eventSlug);
 
     const rows = activeEvent
       ? await db<PublicAttendeeRow[]>`
@@ -87,6 +78,20 @@ export async function GET(request: Request) {
       attendeeCount > 0
         ? Math.round((data.filter((attendee) => attendee.ai_comfort_level >= 4).length / attendeeCount) * 100)
         : 0;
+    const comfortDistribution = data.reduce<Record<`level${1 | 2 | 3 | 4 | 5}`, number>>(
+      (distribution, attendee) => {
+        const level = Math.min(5, Math.max(1, attendee.ai_comfort_level)) as 1 | 2 | 3 | 4 | 5;
+        distribution[`level${level}`] += 1;
+        return distribution;
+      },
+      {
+        level1: 0,
+        level2: 0,
+        level3: 0,
+        level4: 0,
+        level5: 0
+      }
+    );
 
     return NextResponse.json({
       data,
@@ -94,7 +99,8 @@ export async function GET(request: Request) {
       aggregates: {
         attendeeCount,
         averageComfort,
-        highComfortPct
+        highComfortPct,
+        comfortDistribution
       }
     });
   } catch {

@@ -38,6 +38,27 @@ Teams need real-time attendee visibility during events without exposing private 
 
 Attendees scan a QR code, submit in about 30 seconds, and appear on the room board within 5 seconds. The board reads only public-safe fields. Email never appears on public surfaces. Database boundary controls enforce the policy even if UI behavior changes.
 
+## README Demo (Remotion)
+
+A lightweight Remotion demo visualizes the Dallas AI Direct flow:
+1. QR signup
+2. Room board update
+3. Privacy-safe public view (no email exposure)
+
+[![Dallas AI Direct Remotion demo poster](public/demo/dallas-ai-direct-remotion-demo-poster.png)](public/demo/dallas-ai-direct-remotion-demo.mp4)
+
+Caption: Dallas AI Direct flow — QR signup → room board update → privacy-safe public view (attendee email is never shown publicly).
+
+To regenerate assets from repo root:
+
+```bash
+npm run demo:remotion:generate
+# or run render/still/check separately
+npm run demo:remotion:render
+npm run demo:remotion:still
+npm run demo:remotion:check
+```
+
 ---
 
 ## Architecture Overview

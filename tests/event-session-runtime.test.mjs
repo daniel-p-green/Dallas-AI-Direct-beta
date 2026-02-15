@@ -16,15 +16,20 @@ test('organizer event API supports create and active-session selection', () => {
   assert.match(route, /if \(body\.action === 'activate'\)/);
   assert.match(route, /update public\.events set is_active = false where is_active = true/);
   assert.match(route, /insert into public\.events/);
-  assert.match(route, /set is_active = true/);
+  assert.match(route, /validateEventWindows/);
+  assert.match(route, /check_in_window_start must be before check_in_window_end/);
+  assert.match(route, /status: 422/);
+  assert.match(route, /setActiveEventSession\(db/);
 });
 
 test('signup API binds new attendees to the active event session', () => {
   const route = read('app/api/attendees/signup/route.ts');
 
-  assert.match(route, /getActiveEventSession\(db\)/);
+  assert.match(route, /resolveActiveEventSession\(db\)/);
   assert.match(route, /event_id/);
   assert.match(route, /\$\{activeEvent\?\.id \?\? null\}/);
+  assert.match(route, /isWithinCheckInWindow\(/);
+  assert.match(route, /CHECK_IN_WINDOW_CLOSED/);
 });
 
 test('public room API scopes attendee feed by selected or active event and returns aggregates', () => {
@@ -35,6 +40,7 @@ test('public room API scopes attendee feed by selected or active event and retur
   assert.match(route, /where event_id is null/);
   assert.match(route, /aggregates:/);
   assert.match(route, /highComfortPct/);
+  assert.match(route, /comfortDistribution/);
 });
 
 test('room UI renders active session context and server-provided scoped aggregates', () => {

@@ -305,6 +305,42 @@ a {
   background: #fff;
 }
 
+.adminSection {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: var(--space-4);
+  background: #fff;
+}
+
+.adminSectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.adminSectionHeader h3,
+.adminSection h3 {
+  margin: 0;
+}
+
+.adminEventList {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.adminEventCard {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: var(--space-3);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.adminEventCard p {
+  margin: 0;
+}
+
 .adminQueue {
   display: grid;
   gap: var(--space-4);

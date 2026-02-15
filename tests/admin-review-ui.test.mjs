@@ -9,12 +9,34 @@ function read(relativePath) {
   return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 }
 
-test('admin page loads facilitator queue and renders review labels', () => {
+test('admin page loads facilitator queue and event sessions', () => {
   const source = read('app/admin/page.tsx');
 
   assert.match(source, /fetch\('\/api\/matches\/facilitator-queue\?status=suggested&page=1&pageSize=50'/);
-  assert.match(source, /Facilitator review queue/);
+  assert.match(source, /fetch\('\/api\/events'/);
+  assert.match(source, /Organizer admin console/);
+  assert.match(source, /Event sessions/);
   assert.match(source, /Pending suggestions/);
+});
+
+test('admin page supports event session creation and active-session switching confirmation', () => {
+  const source = read('app/admin/page.tsx');
+
+  assert.match(source, /action: 'create'/);
+  assert.match(source, /check_in_window_start/);
+  assert.match(source, /check_in_window_end/);
+  assert.match(source, /window\.confirm\(`Set "\$\{session\.name\}" as the active event session\?`\)/);
+  assert.match(source, /action: 'activate'/);
+  assert.match(source, /Set active session/);
+});
+
+test('admin page validates invalid check-in windows and surfaces backend errors', () => {
+  const source = read('app/admin/page.tsx');
+
+  assert.match(source, /isInvalidWindowRange/);
+  assert.match(source, /Check-in window start must be before check-in window end\./);
+  assert.match(source, /setEventError\(json\.error \?\? 'Unable to create event session\.'/);
+  assert.match(source, /setEventError\(json\.error \?\? 'Unable to activate event session\.'/);
 });
 
 test('admin page submits approve and reject decisions without full reload', () => {
