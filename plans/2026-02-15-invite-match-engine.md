@@ -49,3 +49,10 @@ Implement deterministic attendee matching, facilitator approval workflow, audit 
 - [x] Update `docs/runtime-validation.md` with reproducibility and decision-audit verification steps
 - [x] Add docs consistency tests for invite + match engine documentation contracts
 - [x] Verify `npm run typecheck`, `npm test`, and `npm run build` pass
+
+## Story focus (US-009)
+- [x] Run `npm run typecheck` and record pass/fail evidence for PR contract
+- [x] Run `npm test` and record integration gate results for invite + match engine
+- [x] Run `npm run build` and record release-gate output
+- [x] Verify no unresolved `TODO`/`FIXME` markers remain in invite + match engine implementation surfaces
+- [x] Publish final validation artifact at `docs/us-009-validation-report.md`

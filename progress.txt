@@ -163,3 +163,10 @@ Started: 2026-02-12 03:02 America/Chicago
 - Added `tests/invite-match-docs-consistency.test.mjs` for plan existence, PRD requirements, facilitator journey coverage, and runtime validation reference checks.
 - **Learnings:** Documentation contracts in this repo are enforced effectively via phrase-level `node:test` checks to prevent PRD/runtime drift across stories.
 ---
+## 2026-02-15 06:24 America/Chicago - US-009: Run integration gates and capture build/test/typecheck evidence for PR contract
+- Executed release-gate commands `npm run typecheck`, `npm test`, and `npm run build` after invite + match integration and confirmed all pass.
+- Added final verification artifact `docs/us-009-validation-report.md` with command outputs, exit-code outcomes, and summary for PR contract evidence.
+- Updated `plans/2026-02-15-invite-match-engine.md` with US-009 completion checklist and validation artifact location.
+- Verified no unresolved `TODO`/`FIXME` markers in match-engine implementation/test/docs surfaces used by this feature.
+- **Learnings:** Release-gate stories in this repo should publish a dedicated docs validation report so verification evidence is auditable without replaying local terminal history.
+---
