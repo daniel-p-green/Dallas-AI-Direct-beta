@@ -22,3 +22,5 @@ Add signup route protections (rate limit + risk heuristics), suspicious-event mo
 - US-003: Added deterministic rate-limit snapshot/headers (`X-RateLimit-*`, `Retry-After`) on signup 429 responses and updated abuse-protection tests to lock the 429 contract.
 
 - US-004: Extracted deterministic risk scoring into `lib/signup-risk-scoring.ts`/`.mjs`, wired signup route to shared scorer, and added tests covering heuristic score math plus suspicious-event/moderation persistence + redaction safeguards.
+
+- US-005: Hardened duplicate-email conflict flow to preserve stable 409 UX contract, use captured signup email/fingerprint in telemetry, and gate duplicate event recording behind configurable policy (`SIGNUP_RECORD_DUPLICATE_ATTEMPTS`) with regression tests for first-time success behavior.

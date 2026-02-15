@@ -16,9 +16,25 @@ export type SignupProtectionConfig = {
     };
     suspiciousScoreThreshold: number;
   };
+  abuseTelemetry: {
+    recordDuplicateAttempts: boolean;
+  };
 };
 
 type EnvRecord = Record<string, string | undefined>;
+
+type IntegerSettingKey =
+  | 'SIGNUP_RATE_LIMIT_WINDOW_MS'
+  | 'SIGNUP_RATE_LIMIT_MAX_REQUESTS'
+  | 'SIGNUP_RISK_WEIGHT_HONEYPOT'
+  | 'SIGNUP_RISK_WEIGHT_VELOCITY'
+  | 'SIGNUP_RISK_WEIGHT_MALFORMED_PAYLOAD'
+  | 'SIGNUP_RISK_WEIGHT_DUPLICATE_EMAIL'
+  | 'SIGNUP_RISK_VELOCITY_REQUEST_THRESHOLD'
+  | 'SIGNUP_RISK_MALFORMED_PAYLOAD_THRESHOLD'
+  | 'SIGNUP_RISK_SUSPICIOUS_SCORE_THRESHOLD';
+
+type BooleanSettingKey = 'SIGNUP_RECORD_DUPLICATE_ATTEMPTS';
 
 const DEFAULTS = Object.freeze({
   SIGNUP_RATE_LIMIT_WINDOW_MS: 60_000,
@@ -30,11 +46,12 @@ const DEFAULTS = Object.freeze({
   SIGNUP_RISK_VELOCITY_REQUEST_THRESHOLD: 5,
   SIGNUP_RISK_MALFORMED_PAYLOAD_THRESHOLD: 2,
   SIGNUP_RISK_SUSPICIOUS_SCORE_THRESHOLD: 5,
+  SIGNUP_RECORD_DUPLICATE_ATTEMPTS: true,
 });
 
 function parseIntegerSetting(
   env: EnvRecord,
-  key: keyof typeof DEFAULTS,
+  key: IntegerSettingKey,
   options: { min: number; allowZero?: boolean },
   errors: string[],
 ) {
@@ -55,6 +72,27 @@ function parseIntegerSetting(
   }
 
   return value;
+}
+
+function parseBooleanSetting(env: EnvRecord, key: BooleanSettingKey, errors: string[]) {
+  const raw = env[key];
+
+  if (raw === undefined || raw === '') {
+    return DEFAULTS[key];
+  }
+
+  const normalized = String(raw).trim().toLowerCase();
+
+  if (normalized === 'true') {
+    return true;
+  }
+
+  if (normalized === 'false') {
+    return false;
+  }
+
+  errors.push(`${key} must be a boolean (true|false). Received: ${String(raw)}`);
+  return DEFAULTS[key];
 }
 
 export function createSignupProtectionConfigFromEnv(env: EnvRecord): SignupProtectionConfig {
@@ -94,6 +132,7 @@ export function createSignupProtectionConfigFromEnv(env: EnvRecord): SignupProte
     { min: 1 },
     errors,
   );
+  const recordDuplicateAttempts = parseBooleanSetting(env, 'SIGNUP_RECORD_DUPLICATE_ATTEMPTS', errors);
 
   if (errors.length > 0) {
     throw new Error(`Invalid signup protection configuration:\n- ${errors.join('\n- ')}`);
@@ -116,6 +155,9 @@ export function createSignupProtectionConfigFromEnv(env: EnvRecord): SignupProte
         malformedPayloadCount,
       },
       suspiciousScoreThreshold,
+    },
+    abuseTelemetry: {
+      recordDuplicateAttempts,
     },
   };
 }

@@ -24,6 +24,9 @@ test('uses deterministic defaults when env overrides are absent', () => {
       },
       suspiciousScoreThreshold: 5,
     },
+    abuseTelemetry: {
+      recordDuplicateAttempts: true,
+    },
   });
 });
 
@@ -38,6 +41,7 @@ test('parses integer env overrides for rate limits and heuristic thresholds', ()
     SIGNUP_RISK_VELOCITY_REQUEST_THRESHOLD: '9',
     SIGNUP_RISK_MALFORMED_PAYLOAD_THRESHOLD: '4',
     SIGNUP_RISK_SUSPICIOUS_SCORE_THRESHOLD: '9',
+    SIGNUP_RECORD_DUPLICATE_ATTEMPTS: 'false',
   });
 
   assert.equal(config.rateLimit.windowMs, 120_000);
@@ -49,6 +53,7 @@ test('parses integer env overrides for rate limits and heuristic thresholds', ()
   assert.equal(config.riskScoring.thresholds.velocityRequestCount, 9);
   assert.equal(config.riskScoring.thresholds.malformedPayloadCount, 4);
   assert.equal(config.riskScoring.suspiciousScoreThreshold, 9);
+  assert.equal(config.abuseTelemetry.recordDuplicateAttempts, false);
 });
 
 test('fails fast with explicit error details for invalid env values', () => {
@@ -58,12 +63,14 @@ test('fails fast with explicit error details for invalid env values', () => {
         SIGNUP_RATE_LIMIT_MAX_REQUESTS: 'abc',
         SIGNUP_RISK_WEIGHT_VELOCITY: '-1',
         SIGNUP_RISK_VELOCITY_REQUEST_THRESHOLD: '0',
+        SIGNUP_RECORD_DUPLICATE_ATTEMPTS: 'sometimes',
       }),
     (error) => {
       assert.match(error.message, /Invalid signup protection configuration/);
       assert.match(error.message, /SIGNUP_RATE_LIMIT_MAX_REQUESTS must be an integer/);
       assert.match(error.message, /SIGNUP_RISK_WEIGHT_VELOCITY must be >= 0/);
       assert.match(error.message, /SIGNUP_RISK_VELOCITY_REQUEST_THRESHOLD must be >= 1/);
+      assert.match(error.message, /SIGNUP_RECORD_DUPLICATE_ATTEMPTS must be a boolean/);
       return true;
     },
   );

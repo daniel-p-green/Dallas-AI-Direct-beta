@@ -33,6 +33,23 @@ test('signup route records suspicious attempts into risk events and moderation q
   assert.match(route, /shouldEnqueueModeration =\s*args\.eventType === 'rate_limited' \|\| args\.riskSignal\.riskScore >= config\.riskScoring\.suspiciousScoreThreshold/);
 });
 
+test('duplicate signup conflict keeps stable 409 contract while telemetry obeys duplicate policy flag', () => {
+  const route = read('app/api/attendees/signup/route.ts');
+
+  assert.match(route, /if \(duplicate\)/);
+  assert.match(route, /if \(config\.abuseTelemetry\.recordDuplicateAttempts\)/);
+  assert.match(route, /reason: 'duplicate_email_conflict'/);
+  assert.match(route, /This email has already been used for signup\./);
+  assert.match(route, /status: 409/);
+});
+
+test('valid first-time signup success response contract remains stable', () => {
+  const route = read('app/api/attendees/signup/route.ts');
+
+  assert.match(route, /await db`[\s\S]*insert into attendees/);
+  assert.match(route, /return NextResponse\.json\(\{[\s\S]*ok: true/);
+});
+
 test('signup risk persistence and logs remain redacted (no raw email columns in abuse tables)', () => {
   const route = read('app/api/attendees/signup/route.ts');
 

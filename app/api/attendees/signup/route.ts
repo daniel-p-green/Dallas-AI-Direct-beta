@@ -265,6 +265,7 @@ export async function POST(request: Request) {
 
   const config = getSignupProtectionConfig();
   const now = Date.now();
+  let signupEmailForTelemetry: string | null = null;
 
   try {
     const body = await request.json();
@@ -341,6 +342,7 @@ export async function POST(request: Request) {
     }
 
     const { payload } = parsed;
+    signupEmailForTelemetry = payload.email;
 
     const preInsertRiskSignal = computeSignupRiskSignal(config, {
       honeypotTriggered: payload.honeypot.length > 0,
@@ -414,27 +416,29 @@ export async function POST(request: Request) {
       typeof error === 'object' && error !== null && 'code' in error && (error as { code?: string }).code === '23505';
 
     if (duplicate) {
-      const requestFingerprint = getFingerprintKey(request, null);
-      const requestFingerprintHash = hashValue(requestFingerprint) ?? 'unknown-fingerprint';
-      const windowState = getRequestWindow(requestFingerprintHash, now, config.rateLimit.windowMs);
-      const riskSignal = computeSignupRiskSignal(config, {
-        honeypotTriggered: false,
-        requestCountInWindow: windowState.requestTimestamps.length,
-        malformedPayloadCountInWindow: windowState.malformedTimestamps.length,
-        duplicateTriggered: true,
-      });
+      if (config.abuseTelemetry.recordDuplicateAttempts) {
+        const requestFingerprint = getFingerprintKey(request, signupEmailForTelemetry);
+        const requestFingerprintHash = hashValue(requestFingerprint) ?? 'unknown-fingerprint';
+        const windowState = getRequestWindow(requestFingerprintHash, now, config.rateLimit.windowMs);
+        const riskSignal = computeSignupRiskSignal(config, {
+          honeypotTriggered: false,
+          requestCountInWindow: windowState.requestTimestamps.length,
+          malformedPayloadCountInWindow: windowState.malformedTimestamps.length,
+          duplicateTriggered: true,
+        });
 
-      await recordRiskEvent({
-        db: getDb(),
-        eventType: 'flagged',
-        request,
-        email: null,
-        fingerprintHash: requestFingerprintHash,
-        riskSignal,
-        metadata: {
-          reason: 'duplicate_email_conflict',
-        },
-      });
+        await recordRiskEvent({
+          db: getDb(),
+          eventType: 'flagged',
+          request,
+          email: signupEmailForTelemetry,
+          fingerprintHash: requestFingerprintHash,
+          riskSignal,
+          metadata: {
+            reason: 'duplicate_email_conflict',
+          },
+        });
+      }
 
       return NextResponse.json({ error: 'This email has already been used for signup.' }, { status: 409 });
     }

@@ -27,6 +27,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - Event-session logic should be centralized in shared helpers (for example `lib/event-session.ts`) so signup and room APIs resolve active sessions consistently.
 - Abuse/Trust route protections should emit redacted structured logs plus mirrored inserts to `signup_risk_events` and `signup_moderation_queue` so suspicious traffic is auditable without raw PII.
 - Deterministic 429 contracts should include explicit `X-RateLimit-*` and `Retry-After` headers derived from the same window snapshot used for enforcement.
+- Signup abuse telemetry switches should be modeled in the shared env config parser (TypeScript + `.mjs` mirror) so route behavior and test imports stay in lockstep.
 
 ---
 ## 2026-02-12 03:03 America/Chicago - US-001: Create Geist-aligned brand guidelines document
@@ -228,4 +229,12 @@ Started: 2026-02-12 03:02 America/Chicago
 - Added focused risk scoring unit tests in `tests/signup-risk-scoring.test.mjs` to lock deterministic numeric score composition and threshold behavior.
 - Updated `plans/2026-02-15-abuse-trust-layer-v1.md` with US-004 execution note.
 - **Learnings:** Extracting abuse heuristics into a pure scorer plus `.mjs` mirror makes route logic simpler and keeps deterministic scoring coverage independent from framework runtime concerns.
+---
+## 2026-02-15 07:32 America/Chicago - US-005: Harden duplicate handling and maintain normal signup UX contract
+- Hardened duplicate-email conflict handling in `app/api/attendees/signup/route.ts` by preserving signup email for telemetry fingerprinting while keeping the user-facing 409 contract unchanged.
+- Added policy-gated duplicate abuse telemetry (`config.abuseTelemetry.recordDuplicateAttempts`) so duplicate risk-event creation can be enabled/disabled via env without changing UX behavior.
+- Extended signup protection config (`lib/signup-protection-config.ts` + `.mjs`) with `SIGNUP_RECORD_DUPLICATE_ATTEMPTS` boolean parsing/validation and updated tests accordingly.
+- Added duplicate-hardening and first-time-success regression assertions in `tests/signup-abuse-protections.test.mjs`; updated config parsing tests in `tests/signup-protection-config.test.mjs`.
+- Updated `docs/security.md` and `plans/2026-02-15-abuse-trust-layer-v1.md` with duplicate telemetry policy and story execution notes.
+- **Learnings:** Keep duplicate handling split between stable client contract (409 + safe message) and configurable abuse instrumentation so ops can tune telemetry without UX regressions.
 ---

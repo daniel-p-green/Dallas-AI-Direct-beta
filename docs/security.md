@@ -22,6 +22,7 @@
 - Server-side validation for schema and range checks.
 - Configurable route-level throttling and risk scoring for signup traffic (IP/user-agent fingerprint + heuristic weights/thresholds).
 - Suspicious attempts are mirrored to moderation/audit tables with redacted structured logs.
+- Duplicate-email conflict telemetry is policy-controlled via `SIGNUP_RECORD_DUPLICATE_ATTEMPTS` to keep UX stable while allowing abuse signal tuning.
 
 ## Alpha password gate
 
