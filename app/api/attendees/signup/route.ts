@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { getDb, hasDatabaseUrl } from '../../../../lib/db/server';
 import { getSignupProtectionConfig } from '../../../../lib/signup-protection-config';
+import { computeSignupRiskSignal, type SignupRiskSignal } from '../../../../lib/signup-risk-scoring';
 import { getActiveEventSession } from '../../../../lib/event-session';
 
 type SignupPayload = {
@@ -20,12 +21,6 @@ type SignupPayload = {
 };
 
 type RiskEventType = 'flagged' | 'rate_limited' | 'blocked';
-
-type RiskSignal = {
-  riskScore: number;
-  triggeredRules: string[];
-  malformedPayloadCount: number;
-};
 
 type FingerprintWindow = {
   requestTimestamps: number[];
@@ -159,50 +154,12 @@ function validate(body: unknown): { ok: true; payload: SignupPayload } | { ok: f
   };
 }
 
-function computeRiskSignal(args: {
-  honeypotTriggered: boolean;
-  requestCountInWindow: number;
-  malformedPayloadCountInWindow: number;
-  duplicateTriggered: boolean;
-}) {
-  const config = getSignupProtectionConfig();
-  const { weights, thresholds } = config.riskScoring;
-  let riskScore = 0;
-  const triggeredRules: string[] = [];
-
-  if (args.honeypotTriggered) {
-    riskScore += weights.honeypot;
-    triggeredRules.push('honeypot');
-  }
-
-  if (args.requestCountInWindow >= thresholds.velocityRequestCount) {
-    riskScore += weights.velocity;
-    triggeredRules.push('velocity');
-  }
-
-  if (args.malformedPayloadCountInWindow >= thresholds.malformedPayloadCount) {
-    riskScore += weights.malformedPayload;
-    triggeredRules.push('malformed_payload_frequency');
-  }
-
-  if (args.duplicateTriggered) {
-    riskScore += weights.duplicateEmail;
-    triggeredRules.push('duplicate_email');
-  }
-
-  return {
-    riskScore,
-    triggeredRules,
-    malformedPayloadCount: args.malformedPayloadCountInWindow,
-  };
-}
-
 function emitSignupSecurityLog(payload: {
   eventType: RiskEventType;
   fingerprintHash: string;
   emailHash: string | null;
   emailRedacted: string | null;
-  riskSignal: RiskSignal;
+  riskSignal: SignupRiskSignal;
 }) {
   console.info(
     JSON.stringify({
@@ -224,7 +181,7 @@ async function recordRiskEvent(args: {
   request: Request;
   email: string | null;
   fingerprintHash: string;
-  riskSignal: RiskSignal;
+  riskSignal: SignupRiskSignal;
   metadata: Record<string, unknown>;
 }) {
   const config = getSignupProtectionConfig();
@@ -328,7 +285,7 @@ export async function POST(request: Request) {
 
     if (!parsed.ok) {
       windowState.malformedTimestamps.push(now);
-      const riskSignal = computeRiskSignal({
+      const riskSignal = computeSignupRiskSignal(config, {
         honeypotTriggered: false,
         requestCountInWindow: windowState.requestTimestamps.length,
         malformedPayloadCountInWindow: windowState.malformedTimestamps.length,
@@ -352,7 +309,7 @@ export async function POST(request: Request) {
     }
 
     if (rateLimitSnapshot.isLimited) {
-      const riskSignal = computeRiskSignal({
+      const riskSignal = computeSignupRiskSignal(config, {
         honeypotTriggered: parsed.payload.honeypot.length > 0,
         requestCountInWindow: windowState.requestTimestamps.length,
         malformedPayloadCountInWindow: windowState.malformedTimestamps.length,
@@ -385,7 +342,7 @@ export async function POST(request: Request) {
 
     const { payload } = parsed;
 
-    const preInsertRiskSignal = computeRiskSignal({
+    const preInsertRiskSignal = computeSignupRiskSignal(config, {
       honeypotTriggered: payload.honeypot.length > 0,
       requestCountInWindow: windowState.requestTimestamps.length,
       malformedPayloadCountInWindow: windowState.malformedTimestamps.length,
@@ -460,7 +417,7 @@ export async function POST(request: Request) {
       const requestFingerprint = getFingerprintKey(request, null);
       const requestFingerprintHash = hashValue(requestFingerprint) ?? 'unknown-fingerprint';
       const windowState = getRequestWindow(requestFingerprintHash, now, config.rateLimit.windowMs);
-      const riskSignal = computeRiskSignal({
+      const riskSignal = computeSignupRiskSignal(config, {
         honeypotTriggered: false,
         requestCountInWindow: windowState.requestTimestamps.length,
         malformedPayloadCountInWindow: windowState.malformedTimestamps.length,

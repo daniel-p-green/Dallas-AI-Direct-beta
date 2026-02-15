@@ -4,6 +4,7 @@ Task: Project: Dallas AI Direct Alpha. Task: Create a minimal brand implementati
 Started: 2026-02-12 03:02 America/Chicago
 
 ## Codebase Patterns
+- Abuse-risk heuristics should be implemented in a shared pure scorer module (`lib/*`) and mirrored with `.mjs` for direct `node:test` imports when route handlers need deterministic scoring assertions.
 - This repository currently stores product and technical deliverables as Markdown-first artifacts under `docs/` and `tests/`.
 - Validation for documentation stories can be implemented as lightweight shell checks in `tests/` when no package scripts exist.
 - UI implementation now uses Next.js App Router under `app/` with route-local `page.tsx` files and shared shell in `app/layout.tsx`.
@@ -218,4 +219,13 @@ Started: 2026-02-12 03:02 America/Chicago
 - Updated `tests/signup-abuse-protections.test.mjs` to lock deterministic 429 response + header contract.
 - Updated `plans/2026-02-15-abuse-trust-layer-v1.md` with US-003 execution note.
 - **Learnings:** Deterministic abuse throttling in this codebase should emit explicit response headers (not just status/body) so repeated burst tests and operational monitoring have stable machine-readable limits.
+---
+
+## 2026-02-15 07:22 America/Chicago - US-004: Implement abuse risk scoring heuristics and suspicious-event recording
+- Extracted deterministic signup risk scoring into shared module `lib/signup-risk-scoring.ts` (plus `.mjs` mirror for runtime tests) and wired signup route to use it for honeypot/velocity/malformed/duplicate inputs.
+- Kept suspicious-event flow explicit in signup route: deterministic scoring drives flagged/blocked/rate_limited event writes and moderation queue enqueue behavior against configured threshold.
+- Strengthened abuse route contract tests to assert moderation trigger metadata and redacted persistence columns for abuse tables.
+- Added focused risk scoring unit tests in `tests/signup-risk-scoring.test.mjs` to lock deterministic numeric score composition and threshold behavior.
+- Updated `plans/2026-02-15-abuse-trust-layer-v1.md` with US-004 execution note.
+- **Learnings:** Extracting abuse heuristics into a pure scorer plus `.mjs` mirror makes route logic simpler and keeps deterministic scoring coverage independent from framework runtime concerns.
 ---

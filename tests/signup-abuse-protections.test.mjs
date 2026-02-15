@@ -22,20 +22,40 @@ test('signup route enforces deterministic 429 rate-limit response and headers', 
   assert.match(route, /headers: getRateLimitHeaders\(rateLimitSnapshot\)/);
 });
 
-test('signup route records abuse telemetry and moderation queue inserts', () => {
+test('signup route records suspicious attempts into risk events and moderation queue with trigger metadata', () => {
   const route = read('app/api/attendees/signup/route.ts');
 
   assert.match(route, /insert into public\.signup_risk_events/);
   assert.match(route, /insert into public\.signup_moderation_queue/);
+  assert.match(route, /triggered_rules/);
   assert.match(route, /eventType: 'rate_limited'/);
   assert.match(route, /eventType: payload\.honeypot\.length > 0 \? 'blocked' : 'flagged'/);
+  assert.match(route, /shouldEnqueueModeration =\s*args\.eventType === 'rate_limited' \|\| args\.riskSignal\.riskScore >= config\.riskScoring\.suspiciousScoreThreshold/);
 });
 
-test('signup route hardens duplicate conflicts with risk-rule signaling and redacted logs', () => {
+test('signup risk persistence and logs remain redacted (no raw email columns in abuse tables)', () => {
   const route = read('app/api/attendees/signup/route.ts');
 
-  assert.match(route, /duplicateTriggered: true/);
-  assert.match(route, /reason: 'duplicate_email_conflict'/);
+  const riskInsertStart = route.indexOf('insert into public.signup_risk_events');
+  const riskInsertEnd = route.indexOf('returning id', riskInsertStart);
+  const riskInsertSection = route.slice(riskInsertStart, riskInsertEnd);
+
+  const queueInsertStart = route.indexOf('insert into public.signup_moderation_queue');
+  const queueInsertEnd = route.indexOf('status', queueInsertStart);
+  const queueInsertSection = route.slice(queueInsertStart, queueInsertEnd);
+
+  assert.ok(riskInsertStart > -1 && riskInsertEnd > riskInsertStart);
+  assert.ok(queueInsertStart > -1 && queueInsertEnd > queueInsertStart);
+
+  assert.match(riskInsertSection, /email_hash/);
+  assert.match(riskInsertSection, /email_redacted/);
+  assert.doesNotMatch(riskInsertSection, /\n\s*email,\n/);
+
+  assert.match(queueInsertSection, /email_hash/);
+  assert.match(queueInsertSection, /email_redacted/);
+  assert.doesNotMatch(queueInsertSection, /\n\s*email,\n/);
+
   assert.match(route, /event: 'signup_security'/);
   assert.match(route, /emailRedacted/);
+  assert.match(route, /reason: 'duplicate_email_conflict'/);
 });
