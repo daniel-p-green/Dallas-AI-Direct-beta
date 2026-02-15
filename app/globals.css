@@ -49,6 +49,10 @@ a {
   text-align: center;
 }
 
+.envBanner span {
+  white-space: nowrap;
+}
+
 .header,
 .main,
 .footer {
@@ -122,7 +126,7 @@ a {
   font-size: 14px;
 }
 
-.field input,
+.field input:not([type="checkbox"]):not([type="radio"]),
 .field select,
 .field textarea {
   width: 100%;
@@ -132,6 +136,13 @@ a {
   font: inherit;
   min-height: 44px;
   background: #fff;
+}
+
+.field input[type="checkbox"],
+.field input[type="radio"] {
+  width: auto;
+  min-height: 0;
+  accent-color: var(--accent);
 }
 
 .helper {
@@ -303,6 +314,11 @@ a {
 @media (max-width: 768px) {
   .main {
     gap: var(--space-6);
+  }
+
+  .envBanner {
+    font-size: 12px;
+    gap: var(--space-2);
   }
 
   .gridTwo {
