@@ -34,12 +34,14 @@
 - [x] Implement final visual narrative and render pipeline
 - [x] Integrate README section + demo artifact links/captions
 - [x] Add/update tests and run verification gates
+- [x] Execute final quality-pass loop and capture PR-contract verification evidence
 
 ## Story execution tracker
 - [x] US-001: Scaffold isolated Remotion demo workspace under `demo/remotion`
 - [x] US-002: Implement storyboard composition for Dallas AI Direct hero flow
 - [x] US-003: Add deterministic render pipeline and generate README-friendly demo artifacts
 - [x] US-004: Integrate demo section into README with caption and privacy context
+- [x] US-005: Run quality-pass loop and finalize verification evidence for PR contract
 
 ## Verification plan
 - `npm run typecheck`
