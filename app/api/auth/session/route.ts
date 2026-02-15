@@ -1,28 +1,44 @@
 import { NextResponse } from 'next/server';
 import { getSessionUser, isAuthConfigured } from '@/lib/auth';
+import { getAttendeeSessionUser, isAttendeeAuthEnabled, isAttendeeAuthRequired } from '@/lib/attendee-auth';
 
 export async function GET() {
-  if (!isAuthConfigured()) {
+  const adminConfigured = isAuthConfigured();
+  const attendeeRequired = isAttendeeAuthRequired();
+  const attendeeConfigured = isAttendeeAuthEnabled();
+
+  const adminUser = adminConfigured ? await getSessionUser() : null;
+
+  if (adminUser) {
     return NextResponse.json({
-      configured: false,
-      user: null,
+      configured: true,
+      attendee_auth_required: attendeeRequired,
+      attendee_auth_configured: attendeeConfigured,
+      user: {
+        email: adminUser.email,
+        role: adminUser.role,
+      },
     });
   }
 
-  const user = await getSessionUser();
+  const attendeeUser = attendeeConfigured ? await getAttendeeSessionUser() : null;
 
-  if (!user) {
+  if (!attendeeUser) {
     return NextResponse.json({
-      configured: true,
+      configured: adminConfigured,
+      attendee_auth_required: attendeeRequired,
+      attendee_auth_configured: attendeeConfigured,
       user: null,
     });
   }
 
   return NextResponse.json({
-    configured: true,
+    configured: adminConfigured,
+    attendee_auth_required: attendeeRequired,
+    attendee_auth_configured: attendeeConfigured,
     user: {
-      email: user.email,
-      role: user.role,
+      email: attendeeUser.email,
+      role: attendeeUser.role,
     },
   });
 }

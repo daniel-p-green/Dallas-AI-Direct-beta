@@ -3,11 +3,12 @@ import { getDb, hasDatabaseUrl } from '../../../../../lib/db/server';
 import { requireAdminSession } from '../../../../../lib/auth-guard';
 
 type MatchStatus = 'suggested' | 'approved' | 'rejected';
-type DecisionAction = 'approve' | 'reject';
+type IntroOutcome = 'pending' | 'delivered' | 'not_delivered';
+type DecisionAction = 'approve' | 'reject' | 'delivered' | 'not_delivered';
 
-const ACTION_TO_STATUS: Record<DecisionAction, MatchStatus> = {
+const ACTION_TO_STATUS: Partial<Record<DecisionAction, MatchStatus>> = {
   approve: 'approved',
-  reject: 'rejected'
+  reject: 'rejected',
 };
 
 type DecisionPayload = {
@@ -23,6 +24,9 @@ type MatchRow = {
   status: MatchStatus;
   reviewed_at: string | null;
   reviewed_by: string | null;
+  intro_outcome: IntroOutcome;
+  intro_outcome_at: string | null;
+  intro_outcome_by: string | null;
 };
 
 class DecisionHttpError extends Error {
@@ -47,8 +51,8 @@ function parsePayload(body: unknown): { ok: true; payload: DecisionPayload } | {
   const reason = source.reason;
   const metadata = source.metadata;
 
-  if (action !== 'approve' && action !== 'reject') {
-    return { ok: false, message: 'action must be approve or reject.' };
+  if (action !== 'approve' && action !== 'reject' && action !== 'delivered' && action !== 'not_delivered') {
+    return { ok: false, message: 'action must be approve, reject, delivered, or not_delivered.' };
   }
 
   if (typeof actor !== 'string' || actor.trim().length === 0) {
@@ -64,8 +68,8 @@ function parsePayload(body: unknown): { ok: true; payload: DecisionPayload } | {
       metadata:
         metadata && typeof metadata === 'object' && !Array.isArray(metadata)
           ? (metadata as Record<string, unknown>)
-          : {}
-    }
+          : {},
+    },
   };
 }
 
@@ -101,10 +105,18 @@ async function decide(request: Request, context: { params: Promise<{ suggestionI
     }
 
     const { payload } = parsed;
-    const nextStatus = ACTION_TO_STATUS[payload.action];
+
     const responsePayload = await db.withTransaction(async (tx) => {
       const rows = await tx<MatchRow[]>`
-        select id, run_id, status, reviewed_at, reviewed_by
+        select
+          id,
+          run_id,
+          status,
+          reviewed_at,
+          reviewed_by,
+          intro_outcome,
+          intro_outcome_at,
+          intro_outcome_by
         from attendee_matches
         where id = ${suggestionId}::uuid
         for update
@@ -116,51 +128,136 @@ async function decide(request: Request, context: { params: Promise<{ suggestionI
 
       const match = rows[0];
 
-      if (match.status !== 'suggested') {
+      if (payload.action === 'approve' || payload.action === 'reject') {
+        const nextStatus = ACTION_TO_STATUS[payload.action] as MatchStatus;
+
+        if (match.status !== 'suggested') {
+          throw new DecisionHttpError(409, {
+            error: 'Suggestion is already finalized.',
+            suggestion_id: match.id,
+            status: match.status,
+          });
+        }
+
+        const updatedRows = await tx<MatchRow[]>`
+          update attendee_matches
+          set
+            status = ${nextStatus},
+            reviewed_at = now(),
+            reviewed_by = ${payload.actor}
+          where id = ${suggestionId}::uuid
+            and status = 'suggested'
+          returning
+            id,
+            run_id,
+            status,
+            reviewed_at,
+            reviewed_by,
+            intro_outcome,
+            intro_outcome_at,
+            intro_outcome_by
+        `;
+
+        if (updatedRows.length !== 1) {
+          throw new DecisionHttpError(409, { error: 'Invalid status transition.' });
+        }
+
+        const updated = updatedRows[0];
+
+        const eventRows = await tx<{ id: string; created_at: string }[]>`
+          insert into match_decision_events (
+            match_id,
+            run_id,
+            actor,
+            decision,
+            metadata
+          )
+          values (
+            ${updated.id}::uuid,
+            ${updated.run_id}::uuid,
+            ${payload.actor},
+            ${updated.status},
+            ${JSON.stringify({ reason: payload.reason, ...payload.metadata })}::jsonb
+          )
+          returning id, created_at
+        `;
+
+        if (eventRows.length !== 1) {
+          throw new DecisionHttpError(500, { error: 'Decision audit event write failed.' });
+        }
+
+        return {
+          suggestion_id: updated.id,
+          run_id: updated.run_id,
+          status: updated.status,
+          reviewed_at: updated.reviewed_at,
+          reviewed_by: updated.reviewed_by,
+          intro_outcome: updated.intro_outcome,
+          decision_event: {
+            id: eventRows[0].id,
+            created_at: eventRows[0].created_at,
+            decision: updated.status,
+            actor: payload.actor,
+            reason: payload.reason,
+          },
+        };
+      }
+
+      if (match.status !== 'approved') {
         throw new DecisionHttpError(409, {
-          error: 'Suggestion is already finalized.',
+          error: 'Intro outcomes can only be recorded after approval.',
           suggestion_id: match.id,
-          status: match.status
+          status: match.status,
         });
       }
+
+      const nextOutcome = payload.action;
 
       const updatedRows = await tx<MatchRow[]>`
         update attendee_matches
         set
-          status = ${nextStatus},
-          reviewed_at = now(),
-          reviewed_by = ${payload.actor}
+          intro_outcome = ${nextOutcome},
+          intro_outcome_at = now(),
+          intro_outcome_by = ${payload.actor}
         where id = ${suggestionId}::uuid
-          and status = 'suggested'
-        returning id, run_id, status, reviewed_at, reviewed_by
+          and status = 'approved'
+        returning
+          id,
+          run_id,
+          status,
+          reviewed_at,
+          reviewed_by,
+          intro_outcome,
+          intro_outcome_at,
+          intro_outcome_by
       `;
 
       if (updatedRows.length !== 1) {
-        throw new DecisionHttpError(409, { error: 'Invalid status transition.' });
+        throw new DecisionHttpError(409, { error: 'Invalid intro outcome transition.' });
       }
 
       const updated = updatedRows[0];
 
       const eventRows = await tx<{ id: string; created_at: string }[]>`
-        insert into match_decision_events (
+        insert into match_intro_outcome_events (
           match_id,
           run_id,
+          outcome,
           actor,
-          decision,
-          metadata
+          event_metadata
         )
         values (
           ${updated.id}::uuid,
           ${updated.run_id}::uuid,
+          ${updated.intro_outcome},
           ${payload.actor},
-          ${updated.status},
           ${JSON.stringify({ reason: payload.reason, ...payload.metadata })}::jsonb
         )
         returning id, created_at
       `;
 
       if (eventRows.length !== 1) {
-        throw new DecisionHttpError(500, { error: 'Decision audit event write failed.' });
+        throw new DecisionHttpError(500, { error: 'Intro outcome event write failed.' });
       }
 
       return {
@@ -169,13 +266,16 @@ async function decide(request: Request, context: { params: Promise<{ suggestionI
         status: updated.status,
         reviewed_at: updated.reviewed_at,
         reviewed_by: updated.reviewed_by,
-        decision_event: {
+        intro_outcome: updated.intro_outcome,
+        intro_outcome_at: updated.intro_outcome_at,
+        intro_outcome_by: updated.intro_outcome_by,
+        outcome_event: {
           id: eventRows[0].id,
           created_at: eventRows[0].created_at,
-          decision: updated.status,
+          outcome: updated.intro_outcome,
           actor: payload.actor,
-          reason: payload.reason
-        }
+          reason: payload.reason,
+        },
       };
     });
 

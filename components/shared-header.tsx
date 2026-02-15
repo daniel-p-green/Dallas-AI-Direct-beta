@@ -10,6 +10,12 @@ export function SharedHeader() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [isAdminSession, setIsAdminSession] = useState(false)
   const showAdminNav = process.env.NEXT_PUBLIC_SHOW_ADMIN_NAV === "true" || isAdminSession
+  const attendeeAuthRequired = process.env.NEXT_PUBLIC_ATTENDEE_AUTH_REQUIRED === 'true'
+  const isAuthContextRoute =
+    pathname === '/login' ||
+    pathname === '/admin' ||
+    pathname.startsWith('/sign-in') ||
+    pathname.startsWith('/sign-up')
 
   /* Close menu on route change */
   useEffect(() => {
@@ -70,19 +76,26 @@ export function SharedHeader() {
           <NavLink href="/room" active={pathname === "/room"}>
             Directory
           </NavLink>
+          {attendeeAuthRequired && (
+            <NavLink href="/sign-in" active={pathname.startsWith('/sign-in')}>
+              Sign In
+            </NavLink>
+          )}
           {showAdminNav && (
             <NavLink href="/admin" active={pathname === "/admin"}>
               Admin
             </NavLink>
           )}
-          <a
-            href="https://dallas-ai.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-primary ml-1 min-h-9 px-4 text-xs"
-          >
-            Join Dallas AI
-          </a>
+          {!isAuthContextRoute ? (
+            <a
+              href="https://dallas-ai.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-primary ml-1 min-h-9 px-4 text-xs"
+            >
+              Join Dallas AI
+            </a>
+          ) : null}
         </div>
 
         {/* Mobile hamburger */}
@@ -114,20 +127,27 @@ export function SharedHeader() {
             <MobileNavLink href="/room" active={pathname === "/room"}>
               Directory
             </MobileNavLink>
+            {attendeeAuthRequired && (
+              <MobileNavLink href="/sign-in" active={pathname.startsWith('/sign-in')}>
+                Sign In
+              </MobileNavLink>
+            )}
             {showAdminNav && (
               <MobileNavLink href="/admin" active={pathname === "/admin"}>
                 Admin
               </MobileNavLink>
             )}
           </div>
-          <a
-            href="https://dallas-ai.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-primary mt-3 min-h-10 w-full text-xs"
-          >
-            Join Dallas AI
-          </a>
+          {!isAuthContextRoute ? (
+            <a
+              href="https://dallas-ai.org/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-primary mt-3 min-h-10 w-full text-xs"
+            >
+              Join Dallas AI
+            </a>
+          ) : null}
         </div>
       )}
     </header>

@@ -1,6 +1,12 @@
 import Link from "next/link"
 
 export function HeroSection() {
+  const attendeeAuthEnabled =
+    process.env.NEXT_PUBLIC_ATTENDEE_AUTH_REQUIRED === 'true' &&
+    Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY)
+  const signupHref = attendeeAuthEnabled ? '/sign-in?redirect_url=/signup' : '/signup'
+  const roomHref = attendeeAuthEnabled ? '/sign-in?redirect_url=/room' : '/room'
+
   return (
     <section className="relative flex flex-col items-center overflow-hidden px-5 pb-24 pt-28 text-center md:pb-32 md:pt-40">
       {/* Ambient glow -- purely decorative */}
@@ -27,13 +33,13 @@ export function HeroSection() {
 
       <div className="mt-10 flex w-full max-w-xs flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center">
         <Link
-          href="/signup"
+          href={signupHref}
           className="btn btn-primary sm:min-w-[190px]"
         >
           Join the Event
         </Link>
         <Link
-          href="/room"
+          href={roomHref}
           className="btn btn-secondary sm:min-w-[190px]"
         >
           Browse the Room

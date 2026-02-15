@@ -3,6 +3,7 @@ import { getDb, hasDatabaseUrl } from '../../../../lib/db/server';
 import { requireAdminSession } from '../../../../lib/auth-guard';
 
 type MatchStatus = 'suggested' | 'approved' | 'rejected';
+type IntroOutcome = 'pending' | 'delivered' | 'not_delivered';
 
 const ALLOWED_STATUSES: MatchStatus[] = ['suggested', 'approved', 'rejected'];
 const DEFAULT_PAGE = 1;
@@ -22,6 +23,9 @@ type QueueRow = {
   created_at: string;
   reviewed_at: string | null;
   reviewed_by: string | null;
+  intro_outcome: IntroOutcome;
+  intro_outcome_at: string | null;
+  intro_outcome_by: string | null;
   attendee_id: string;
   attendee_name: string | null;
   attendee_title: string | null;
@@ -164,6 +168,9 @@ export async function GET(request: Request) {
             am.created_at,
             am.reviewed_at,
             am.reviewed_by,
+            am.intro_outcome,
+            am.intro_outcome_at,
+            am.intro_outcome_by,
             source.id as attendee_id,
             source.name as attendee_name,
             source.title as attendee_title,
@@ -203,6 +210,9 @@ export async function GET(request: Request) {
             am.created_at,
             am.reviewed_at,
             am.reviewed_by,
+            am.intro_outcome,
+            am.intro_outcome_at,
+            am.intro_outcome_by,
             source.id as attendee_id,
             source.name as attendee_name,
             source.title as attendee_title,
@@ -236,6 +246,9 @@ export async function GET(request: Request) {
       created_at: row.created_at,
       reviewed_at: row.reviewed_at,
       reviewed_by: normalizeOptionalText(row.reviewed_by),
+      intro_outcome: row.intro_outcome,
+      intro_outcome_at: row.intro_outcome_at,
+      intro_outcome_by: normalizeOptionalText(row.intro_outcome_by),
       score_breakdown: {
         total_score: row.total_score,
         overlap_score: row.overlap_score,
