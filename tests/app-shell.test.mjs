@@ -26,23 +26,25 @@ test('App Router route files exist for required paths', () => {
 test('shared layout renders environment banner text', () => {
   const layout = read('app/layout.tsx');
 
-  assert.match(layout, /ALPHA DEMO/);
+  assert.match(layout, /NEXT_PUBLIC_SHOW_ENV_BANNER === "true"/);
+  assert.match(layout, /BETA DEMO/);
   assert.match(layout, /ENV: STAGE/);
   assert.match(layout, /PUBLIC VIEW SAFE/);
 });
 
-test('shared header renders title and subtitle', () => {
+test('shared layout uses shared header/footer components', () => {
   const layout = read('app/layout.tsx');
 
-  assert.match(layout, /Dallas AI Direct Alpha/);
-  assert.match(layout, /Fast, private attendee signal for in-room demo moments\./);
+  assert.match(layout, /<SharedHeader \/>/);
+  assert.match(layout, /<SharedFooter \/>/);
+  assert.match(layout, /Connecting 10,000\+ minds building the future of AI in Dallas\./);
 });
 
 test('shared header includes Dallas AI brand logo asset', () => {
-  const layout = read('app/layout.tsx');
+  const header = read('components/shared-header.tsx');
 
-  assert.match(layout, /\/brand\/dallas-ai-logo-color\.png/);
-  assert.match(layout, /alt="Dallas AI"/);
+  assert.match(header, /\/brand\/dallas-ai-logo-white\.png/);
+  assert.match(header, /Dallas AI Direct/);
 });
 
 test('Dallas AI logo assets exist in public brand directory', () => {
@@ -51,7 +53,7 @@ test('Dallas AI logo assets exist in public brand directory', () => {
 });
 
 test('shared footer renders required privacy text', () => {
-  const layout = read('app/layout.tsx');
+  const footer = read('components/shared-footer.tsx');
 
-  assert.match(layout, /Email stays private and is never displayed publicly on the room board\./);
+  assert.match(footer, /Email never displayed/);
 });

@@ -15,11 +15,11 @@ test.describe('ui mobile audit', () => {
     expect(noHorizontalScroll).toBeTruthy();
   });
 
-  test('room does not show email-like text and shows privacy badge', async ({ page }) => {
+  test('room does not show email-like text and shows session context', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await page.goto(`${BASE_URL}/room`, { waitUntil: 'domcontentloaded' });
 
-    await expect(page.getByText('Public view – emails excluded')).toBeVisible();
+    await expect(page.getByText('Session:')).toBeVisible();
 
     const bodyText = (await page.locator('body').innerText()) || '';
     expect(bodyText).not.toContain('@');

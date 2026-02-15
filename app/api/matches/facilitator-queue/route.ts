@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getDb, hasDatabaseUrl } from '../../../../lib/db/server';
+import { requireAdminSession } from '../../../../lib/auth-guard';
 
 type MatchStatus = 'suggested' | 'approved' | 'rejected';
 
@@ -116,6 +117,11 @@ function parseStatusFilter(rawStatus: string | null): MatchStatus[] {
 export async function GET(request: Request) {
   if (!hasDatabaseUrl()) {
     return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+  }
+
+  const adminSession = await requireAdminSession();
+  if (!adminSession.ok) {
+    return adminSession.response;
   }
 
   try {

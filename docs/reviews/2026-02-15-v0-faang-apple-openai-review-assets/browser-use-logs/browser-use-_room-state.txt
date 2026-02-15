@@ -1,0 +1,103 @@
+Skip to content
+[598]<a />
+	[633]<span />
+		Dallas AI Direct
+[600]<a />
+	Sign Up
+[601]<a />
+	Directory
+[638]<a />
+	Join Dallas AI
+Directory
+[651]<span />
+	Sample
+6 attendees in the room
+Showing sample data. Connect the database to see live attendees.
+[659]<span />
+Attendees
+[664]<span />
+	3.8
+Avg Comfort
+[669]<span />
+	67%
+Advanced
+Search attendees
+[675]<svg /> <!-- SVG content collapsed -->
+|SHADOW(open)|[585]<input id=attendee-search type=search placeholder=Search by name, title, or company... />
+[603]<button pressed=true />
+	All
+[604]<button pressed=false />
+	Hiring
+[605]<button pressed=false />
+	Mentoring
+[606]<button pressed=false />
+	Partnering
+[607]<button pressed=false />
+	Investing
+[608]<button pressed=false />
+	Learning
+[609]<button pressed=false />
+	Selling
+[688]<div />
+	SK
+Sarah Kim
+CTO at DataFlow
+[703]<span />
+	Leading
+Investing
+Mentoring
+[713]<div />
+	MR
+Marcus Rivera
+[719]<a aria-label=Marcus Rivera on LinkedIn />
+[731]<span />
+	Learning
+Learning
+[738]<div />
+	PS
+Priya Sharma
+[743]<a aria-label=Priya Sharma on LinkedIn />
+Product Lead at Nexus AI
+[757]<span />
+	Leading
+Partnering
+[765]<div />
+	JC
+Jordan Chen
+[771]<a aria-label=Jordan Chen on LinkedIn />
+ML Engineer at Vertex Labs
+[785]<span />
+	Shipping
+Mentoring
+Hiring
+[795]<div />
+	AT
+Alex Thompson
+[801]<a aria-label=Alex Thompson on LinkedIn />
+Founder at AI Studio
+[815]<span />
+	Building
+Hiring
+Partnering
+[824]<div />
+	LW
+Lisa Wong
+Data Scientist at TechCorp
+[839]<span />
+	Shipping
+Mentoring
+Learning
+<svg /> <!-- SVG content collapsed -->
+Email never displayed
+Built by
+[860]<a />
+	Daniel Green
+[863]<a aria-label=Built with v0 by Vercel />
+	Built with
+	v0
+Open Shadow
+	[896]<div role=status live=polite />
+		[898]<div />
+			<svg /> <!-- SVG content collapsed -->
+		[903]<button aria-label=Hide static indicator />
+Shadow End

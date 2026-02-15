@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 
 type MatchStatus = 'suggested' | 'approved' | 'rejected';
@@ -94,6 +95,9 @@ function isInvalidWindowRange(form: CreateEventFormState) {
 }
 
 export default function AdminPage() {
+  const router = useRouter();
+  const [authChecked, setAuthChecked] = useState(false);
+  const [authorized, setAuthorized] = useState(false);
   const [items, setItems] = useState<QueueItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -109,6 +113,42 @@ export default function AdminPage() {
   const [eventForm, setEventForm] = useState<CreateEventFormState>(EMPTY_EVENT_FORM);
 
   const pendingCount = useMemo(() => items.filter((item) => item.status === 'suggested').length, [items]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function checkSession() {
+      try {
+        const response = await fetch('/api/auth/session', { cache: 'no-store' });
+        const json = (await response.json().catch(() => ({}))) as { user?: { role?: string } | null };
+
+        if (!active) {
+          return;
+        }
+
+        if (json.user?.role === 'admin') {
+          setAuthorized(true);
+          return;
+        }
+
+        router.replace('/login?next=/admin');
+      } catch {
+        if (active) {
+          router.replace('/login?next=/admin');
+        }
+      } finally {
+        if (active) {
+          setAuthChecked(true);
+        }
+      }
+    }
+
+    void checkSession();
+
+    return () => {
+      active = false;
+    };
+  }, [router]);
 
   const loadQueue = useCallback(async () => {
     try {
@@ -152,9 +192,21 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => {
+    if (!authorized) {
+      return;
+    }
+
     void loadQueue();
     void loadEvents();
-  }, [loadQueue, loadEvents]);
+  }, [authorized, loadQueue, loadEvents]);
+
+  const handleLogout = useCallback(async () => {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+    } finally {
+      router.replace('/login');
+    }
+  }, [router]);
 
   const submitDecision = useCallback(
     async (suggestionId: string, action: DecisionAction) => {
@@ -291,11 +343,28 @@ export default function AdminPage() {
     }
   }, [activeEvent?.id, loadEvents]);
 
+  if (!authChecked) {
+    return (
+      <section className="pageCard stack">
+        <p className="muted">Checking admin session…</p>
+      </section>
+    );
+  }
+
+  if (!authorized) {
+    return null;
+  }
+
   return (
     <section className="pageCard stack">
-      <div>
-        <h2 className="pageTitle">Organizer admin console</h2>
-        <p className="muted">Manage event sessions and review suggested introductions. Email is never shown.</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2 className="pageTitle">Organizer admin console</h2>
+          <p className="muted">Manage event sessions and review suggested introductions. Email is never shown.</p>
+        </div>
+        <button type="button" className="buttonSecondary" onClick={() => void handleLogout()}>
+          Sign out
+        </button>
       </div>
 
       <article className="adminSection stack">
