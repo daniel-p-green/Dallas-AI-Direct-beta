@@ -16,6 +16,9 @@ test('organizer event API supports create and active-session selection', () => {
   assert.match(route, /if \(body\.action === 'activate'\)/);
   assert.match(route, /update public\.events set is_active = false where is_active = true/);
   assert.match(route, /insert into public\.events/);
+  assert.match(route, /validateEventWindows/);
+  assert.match(route, /check_in_window_start must be before check_in_window_end/);
+  assert.match(route, /status: 422/);
   assert.match(route, /setActiveEventSession\(db/);
 });
 
