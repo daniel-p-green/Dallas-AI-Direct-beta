@@ -70,6 +70,14 @@ const FILTERS = [
   "Selling",
 ] as const
 
+type MeetSuggestion = {
+  suggestion_id: string
+  status: "approved" | "suggested"
+  attendee: { name: string; title?: string; company?: string }
+  matched_attendee: { name: string; title?: string; company?: string }
+  why: string[]
+}
+
 /* ------------------------------------------------------------------ */
 /* Component                                                           */
 /* ------------------------------------------------------------------ */
@@ -90,6 +98,10 @@ export function RoomBoard() {
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState<string>("All")
   const [activeEvent, setActiveEvent] = useState<{ id: string; slug: string; name: string } | null>(null)
+  const [meetSuggestions, setMeetSuggestions] = useState<MeetSuggestion[]>([])
+  const [meetNotice, setMeetNotice] = useState<string | null>(
+    "No introductions yet. Once facilitator matches are generated, this list will populate."
+  )
   const [aggregates, setAggregates] = useState<{
     attendeeCount: number
     averageComfort: number
@@ -138,6 +150,92 @@ export function RoomBoard() {
   useEffect(() => {
     let active = true
 
+    async function loadSuggestions(eventSlug: string | null) {
+      const params = new URLSearchParams()
+      params.set("limit", "4")
+      if (eventSlug) {
+        params.set("event", eventSlug)
+      }
+
+      try {
+        const response = await fetch(`/api/matches/you-should-meet?${params.toString()}`, {
+          cache: "no-store",
+        })
+        const json = (await response
+          .json()
+          .catch(() => ({}))) as {
+          data?: Array<{
+            suggestion_id?: string
+            status?: "approved" | "suggested"
+            attendee?: { name?: string; title?: string; company?: string }
+            matched_attendee?: { name?: string; title?: string; company?: string }
+            why?: string[]
+          }>
+        }
+
+        if (!active) {
+          return
+        }
+
+        if (!response.ok || !Array.isArray(json.data)) {
+          setMeetSuggestions([])
+          setMeetNotice("No introductions yet. Once facilitator matches are generated, this list will populate.")
+          return
+        }
+
+        const mapped: MeetSuggestion[] = json.data.slice(0, 4).map((item, index) => ({
+          suggestion_id: typeof item.suggestion_id === "string" ? item.suggestion_id : `suggestion-${index}`,
+          status: item.status === "approved" ? "approved" : "suggested",
+          attendee: {
+            name:
+              typeof item.attendee?.name === "string" && item.attendee.name.trim().length > 0
+                ? item.attendee.name
+                : "Attendee",
+            title:
+              typeof item.attendee?.title === "string" && item.attendee.title.trim().length > 0
+                ? item.attendee.title
+                : undefined,
+            company:
+              typeof item.attendee?.company === "string" && item.attendee.company.trim().length > 0
+                ? item.attendee.company
+                : undefined,
+          },
+          matched_attendee: {
+            name:
+              typeof item.matched_attendee?.name === "string" &&
+              item.matched_attendee.name.trim().length > 0
+                ? item.matched_attendee.name
+                : "Attendee",
+            title:
+              typeof item.matched_attendee?.title === "string" &&
+              item.matched_attendee.title.trim().length > 0
+                ? item.matched_attendee.title
+                : undefined,
+            company:
+              typeof item.matched_attendee?.company === "string" &&
+              item.matched_attendee.company.trim().length > 0
+                ? item.matched_attendee.company
+                : undefined,
+          },
+          why: Array.isArray(item.why)
+            ? item.why.filter((value): value is string => typeof value === "string").slice(0, 2)
+            : [],
+        }))
+
+        setMeetSuggestions(mapped)
+        setMeetNotice(
+          mapped.length === 0
+            ? "No introductions yet. Once facilitator matches are generated, this list will populate."
+            : null
+        )
+      } catch {
+        if (active) {
+          setMeetSuggestions([])
+          setMeetNotice("No introductions yet. Once facilitator matches are generated, this list will populate.")
+        }
+      }
+    }
+
     async function load() {
       try {
         const res = await fetch("/api/attendees/public", { cache: "no-store" })
@@ -161,6 +259,8 @@ export function RoomBoard() {
             setNotice("Live data unavailable. Showing sample data.")
             setAttendees(fallback)
             setActiveEvent(null)
+            setMeetSuggestions([])
+            setMeetNotice("No introductions yet. Once facilitator matches are generated, this list will populate.")
             setAggregates({
               attendeeCount: fallback.length,
               averageComfort:
@@ -214,6 +314,7 @@ export function RoomBoard() {
           setNotice(null)
           setAttendees(mapped)
           setActiveEvent(json.event ?? null)
+          void loadSuggestions(json.event?.slug ?? null)
           setAggregates(
             json.aggregates ?? {
               attendeeCount: mapped.length,
@@ -243,6 +344,8 @@ export function RoomBoard() {
           setNotice("Live data unavailable. Showing sample data.")
           setAttendees(fallback)
           setActiveEvent(null)
+          setMeetSuggestions([])
+          setMeetNotice("No introductions yet. Once facilitator matches are generated, this list will populate.")
           setAggregates({
             attendeeCount: fallback.length,
             averageComfort:
@@ -332,6 +435,54 @@ export function RoomBoard() {
           }}
         />
       </div>
+
+      {/* You Should Meet prompts */}
+      <section className="mb-6 rounded-2xl border border-border bg-card p-4 md:p-5">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold tracking-tight md:text-base">
+            You Should Meet...
+          </h2>
+          <span className="badge">
+            {meetSuggestions.length} {meetSuggestions.length === 1 ? "intro" : "intros"}
+          </span>
+        </div>
+
+        {meetNotice ? (
+          <p className="text-sm text-muted-foreground">{meetNotice}</p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {meetSuggestions.map((suggestion) => (
+              <article
+                key={suggestion.suggestion_id}
+                className="rounded-xl border border-border bg-background p-3"
+              >
+                <p className="text-sm font-medium">
+                  {suggestion.attendee.name} {"\u2194"} {suggestion.matched_attendee.name}
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {[suggestion.attendee.title, suggestion.attendee.company]
+                    .filter(Boolean)
+                    .join(" \u00b7 ") || "Profile private"}
+                  {" \u2022 "}
+                  {[suggestion.matched_attendee.title, suggestion.matched_attendee.company]
+                    .filter(Boolean)
+                    .join(" \u00b7 ") || "Profile private"}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {(suggestion.why.length > 0
+                    ? suggestion.why
+                    : ["Strong complementary networking fit"]
+                  ).map((reason) => (
+                    <span key={reason} className="badge">
+                      {reason}
+                    </span>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* Search */}
       <div className="relative mb-4">

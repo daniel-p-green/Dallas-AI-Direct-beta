@@ -10,6 +10,7 @@ export function SharedFooter() {
             alt="Dallas AI Direct"
             width={80}
             height={22}
+            unoptimized
             className="h-5 w-auto opacity-70"
           />
           <span className="h-3 w-px bg-border" aria-hidden="true" />

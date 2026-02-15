@@ -8,12 +8,38 @@ import { useEffect, useState } from "react"
 export function SharedHeader() {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const showAdminNav = process.env.NEXT_PUBLIC_SHOW_ADMIN_NAV === "true"
+  const [isAdminSession, setIsAdminSession] = useState(false)
+  const showAdminNav = process.env.NEXT_PUBLIC_SHOW_ADMIN_NAV === "true" || isAdminSession
 
   /* Close menu on route change */
   useEffect(() => {
     setMobileOpen(false)
   }, [pathname])
+
+  useEffect(() => {
+    let active = true
+
+    async function loadSession() {
+      try {
+        const response = await fetch("/api/auth/session", { cache: "no-store" })
+        const json = (await response.json().catch(() => ({}))) as { user?: { role?: string } | null }
+
+        if (active) {
+          setIsAdminSession(json.user?.role === "admin")
+        }
+      } catch {
+        if (active) {
+          setIsAdminSession(false)
+        }
+      }
+    }
+
+    void loadSession()
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
@@ -27,13 +53,13 @@ export function SharedHeader() {
         >
           <Image
             src="/brand/dallas-ai-logo-white.png"
-            alt=""
+            alt="Dallas AI Direct"
             width={120}
             height={32}
+            unoptimized
             priority
             className="h-7 w-auto"
           />
-          <span className="sr-only">Dallas AI Direct</span>
         </Link>
 
         {/* Desktop nav */}
@@ -53,7 +79,7 @@ export function SharedHeader() {
             href="https://dallas-ai.org/"
             target="_blank"
             rel="noopener noreferrer"
-            className="focus-ring ml-1 inline-flex h-8 items-center justify-center rounded-full bg-foreground px-4 text-xs font-semibold text-background transition-opacity hover:opacity-80 active:scale-[0.97]"
+            className="btn btn-primary ml-1 min-h-9 px-4 text-xs"
           >
             Join Dallas AI
           </a>
@@ -98,7 +124,7 @@ export function SharedHeader() {
             href="https://dallas-ai.org/"
             target="_blank"
             rel="noopener noreferrer"
-            className="focus-ring mt-3 inline-flex h-9 w-full items-center justify-center rounded-full bg-foreground text-xs font-semibold text-background transition-opacity hover:opacity-80 active:scale-[0.98]"
+            className="btn btn-primary mt-3 min-h-10 w-full text-xs"
           >
             Join Dallas AI
           </a>

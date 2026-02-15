@@ -141,7 +141,7 @@ export function SignupForm() {
         <p className="mt-2 text-sm text-muted-foreground">{status.message}</p>
         <Link
           href="/room"
-          className="focus-ring mt-8 inline-flex h-11 items-center justify-center rounded-full bg-primary px-6 text-[13px] font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:brightness-110 active:scale-[0.98]"
+          className="btn btn-primary mt-8"
         >
           View Directory
         </Link>
@@ -350,13 +350,13 @@ export function SignupForm() {
           <button
             type="submit"
             disabled={status.type === "submitting"}
-            className="focus-ring inline-flex h-11 flex-1 items-center justify-center rounded-full bg-primary px-6 text-[13px] font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:shadow-xl hover:shadow-primary/30 hover:brightness-110 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98]"
+            className="btn btn-primary flex-1"
           >
             {status.type === "submitting" ? "Joining\u2026" : "Join Event"}
           </button>
           <Link
             href="/room"
-            className="focus-ring inline-flex h-11 items-center justify-center rounded-full border border-border px-6 text-[13px] font-semibold transition-colors hover:bg-secondary active:scale-[0.98]"
+            className="btn btn-secondary sm:flex-1"
           >
             View Directory
           </Link>

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getDb, hasDatabaseUrl } from '../../../../lib/db/server';
+import { requireAdminSession } from '../../../../lib/auth-guard';
 
 type ModerationStatus = 'pending' | 'reviewing' | 'resolved' | 'false_positive';
 
@@ -103,6 +104,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
   }
 
+  const adminSession = await requireAdminSession();
+  if (!adminSession.ok) {
+    return adminSession.response;
+  }
+
   try {
     const url = new URL(request.url);
     const page = parsePositiveInt(url.searchParams.get('page'), DEFAULT_PAGE, 1, 10_000);
@@ -167,6 +173,11 @@ export async function GET(request: Request) {
 export async function PATCH(request: Request) {
   if (!hasDatabaseUrl()) {
     return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+  }
+
+  const adminSession = await requireAdminSession();
+  if (!adminSession.ok) {
+    return adminSession.response;
   }
 
   try {

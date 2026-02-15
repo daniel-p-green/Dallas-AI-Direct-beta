@@ -1,0 +1,125 @@
+Skip to content
+[325]<a />
+	[368]<span />
+		Dallas AI Direct
+[327]<a />
+	Sign Up
+[328]<a />
+	Directory
+[373]<a />
+	Join Dallas AI
+Join Dallas AI Direct
+Share your signal so others know who to connect with. Your email stays private.
+[313]<label />
+	Name
+|SHADOW(open)|[302]<input id=name type=text placeholder=Your full name name=name required=true />
+[314]<label />
+	Email
+|SHADOW(open)|[303]<input id=email type=email placeholder=you@company.com name=email required=true />
+Never displayed publicly
+AI Comfort Level
+Select your AI comfort level
+[403]<label />
+	[304]<input type=radio name=ai_comfort_level value=1 checked=false />
+	[404]<div />
+		[405]<span />
+		[407]<span />
+			Exploring
+[409]<label />
+	[305]<input type=radio name=ai_comfort_level value=2 checked=false />
+	[410]<div />
+		[411]<span />
+		[413]<span />
+			Learning
+[415]<label />
+	[306]<input type=radio name=ai_comfort_level value=3 checked=true />
+	[416]<div />
+		[417]<span />
+		[419]<span />
+			Building
+[421]<label />
+	[307]<input type=radio name=ai_comfort_level value=4 checked=false />
+	[422]<div />
+		[423]<span />
+		[425]<span />
+			Shipping
+[427]<label />
+	[308]<input type=radio name=ai_comfort_level value=5 checked=false />
+	[428]<div />
+		[429]<span />
+		[431]<span />
+			Leading
+What help do you need?
+[436]<span />
+	optional
+[330]<button pressed=false />
+	Hiring
+[331]<button pressed=false />
+	Mentoring
+[332]<button pressed=false />
+	Partnering
+[333]<button pressed=false />
+	Investing
+[334]<button pressed=false />
+	Learning
+[335]<button pressed=false />
+	Selling
+[336]<button pressed=false />
+	Other
+What help can you offer?
+[449]<span />
+	optional
+[337]<button pressed=false />
+	Hiring
+[338]<button pressed=false />
+	Mentoring
+[339]<button pressed=false />
+	Partnering
+[340]<button pressed=false />
+	Investing
+[341]<button pressed=false />
+	Learning
+[342]<button pressed=false />
+	Selling
+[343]<button pressed=false />
+	Other
+[459]<div role=separator />
+Optional
+LinkedIn
+[466]<span />
+	optional
+|SHADOW(open)|[309]<input id=linkedin type=url placeholder=https://linkedin.com/in/... name=linkedin_url />
+[319]<label />
+	Title
+[472]<span />
+	optional
+|SHADOW(open)|[310]<input id=title type=text placeholder=Your role name=title />
+Company
+[477]<span />
+	optional
+|SHADOW(open)|[311]<input id=company type=text placeholder=Your company />
+[479]<label />
+	[480]<span />
+		[312]<input type=checkbox name=display_title_company checked=false />
+		[481]<span />
+		[482]<span />
+	[483]<span />
+		Show title & company in directory
+[486]<button type=submit />
+	Join Event
+[344]<a />
+	View Directory
+<svg /> <!-- SVG content collapsed -->
+Email never displayed
+Built by
+[503]<a />
+	Daniel Green
+[506]<a aria-label=Built with v0 by Vercel />
+	Built with
+	v0
+Open Shadow
+	[539]<div role=status live=polite />
+		[541]<div />
+			<svg /> <!-- SVG content collapsed -->
+		[546]<button aria-label=Hide static indicator />
+Shadow End

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb, hasDatabaseUrl } from '../../../lib/db/server';
 import { resolveActiveEventSession, setActiveEventSession } from '../../../lib/event-session';
+import { requireAdminSession } from '../../../lib/auth-guard';
 
 type EventRow = {
   id: string;
@@ -106,6 +107,11 @@ export async function GET() {
     return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
   }
 
+  const adminSession = await requireAdminSession();
+  if (!adminSession.ok) {
+    return adminSession.response;
+  }
+
   try {
     const db = getDb();
     const rows = await db<EventRow[]>`
@@ -138,6 +144,11 @@ export async function GET() {
 export async function POST(request: Request) {
   if (!hasDatabaseUrl()) {
     return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+  }
+
+  const adminSession = await requireAdminSession();
+  if (!adminSession.ok) {
+    return adminSession.response;
   }
 
   try {
