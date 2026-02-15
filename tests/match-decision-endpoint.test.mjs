@@ -14,14 +14,14 @@ test('decision endpoint supports POST and PATCH with strict action validation', 
 });
 
 test('decision endpoint updates suggestion and inserts one immutable audit event atomically', () => {
-  assert.match(routeSource, /await db`begin`/);
+  assert.match(routeSource, /await db\.withTransaction\(async \(tx\)/);
   assert.match(routeSource, /select id, run_id, status, reviewed_at, reviewed_by[\s\S]*for update/);
   assert.match(routeSource, /update attendee_matches[\s\S]*status = \$\{nextStatus\}[\s\S]*returning id, run_id, status, reviewed_at, reviewed_by/);
   assert.match(routeSource, /if \(updatedRows\.length !== 1\)/);
   assert.match(routeSource, /insert into match_decision_events/);
   assert.match(routeSource, /if \(eventRows\.length !== 1\)/);
-  assert.match(routeSource, /await db`commit`/);
-  assert.match(routeSource, /await db`rollback`/);
+  assert.match(routeSource, /class DecisionHttpError extends Error/);
+  assert.match(routeSource, /return NextResponse\.json\(responsePayload\)/);
 });
 
 test('decision endpoint enforces finalized-state guardrails with non-2xx response', () => {

@@ -1,4 +1,4 @@
-import type postgres from 'postgres';
+import type { DbClient } from "./db/server";
 
 export const DEFAULT_EVENT_SESSION_SLUG = 'legacy-default-session';
 const DEFAULT_EVENT_SESSION_NAME = 'Legacy Default Session';
@@ -26,7 +26,7 @@ type SetActiveEventSessionOptions = {
   slug?: string;
 };
 
-async function findExplicitActiveEventSession(db: postgres.Sql) {
+async function findExplicitActiveEventSession(db: DbClient) {
   const rows = await db<EventSessionRow[]>`
     select
       id,
@@ -47,7 +47,7 @@ async function findExplicitActiveEventSession(db: postgres.Sql) {
   return rows[0] ?? null;
 }
 
-async function findEventSessionBySlug(db: postgres.Sql, slug: string) {
+async function findEventSessionBySlug(db: DbClient, slug: string) {
   const rows = await db<EventSessionRow[]>`
     select
       id,
@@ -68,7 +68,7 @@ async function findEventSessionBySlug(db: postgres.Sql, slug: string) {
   return rows[0] ?? null;
 }
 
-async function findFirstEventSession(db: postgres.Sql) {
+async function findFirstEventSession(db: DbClient) {
   const rows = await db<EventSessionRow[]>`
     select
       id,
@@ -88,12 +88,13 @@ async function findFirstEventSession(db: postgres.Sql) {
   return rows[0] ?? null;
 }
 
-async function setActiveEventSessionById(db: postgres.Sql, eventId: string) {
-  await db`begin`;
-  try {
-    await db`update public.events set is_active = false where is_active = true`;
+async function setActiveEventSessionById(db: DbClient, eventId: string) {
+  let foundTarget = false;
 
-    const updated = await db<{ id: string }[]>`
+  await db.withTransaction(async (tx) => {
+    await tx`update public.events set is_active = false where is_active = true`;
+
+    const updated = await tx<{ id: string }[]>`
       update public.events
       set is_active = true,
           updated_at = now()
@@ -101,21 +102,17 @@ async function setActiveEventSessionById(db: postgres.Sql, eventId: string) {
       returning id
     `;
 
-    if (updated.length === 0) {
-      await db`rollback`;
-      return null;
-    }
+    foundTarget = updated.length > 0;
+  });
 
-    await db`commit`;
-  } catch (error) {
-    await db`rollback`;
-    throw error;
+  if (!foundTarget) {
+    return null;
   }
 
   return findExplicitActiveEventSession(db);
 }
 
-async function ensureDefaultEventSession(db: postgres.Sql, defaultSlug: string) {
+async function ensureDefaultEventSession(db: DbClient, defaultSlug: string) {
   const existingDefault = await findEventSessionBySlug(db, defaultSlug);
 
   if (existingDefault) {
@@ -148,12 +145,12 @@ async function ensureDefaultEventSession(db: postgres.Sql, defaultSlug: string) 
   return inserted[0] ?? findEventSessionBySlug(db, defaultSlug);
 }
 
-export async function getActiveEventSession(db: postgres.Sql) {
+export async function getActiveEventSession(db: DbClient) {
   return findExplicitActiveEventSession(db);
 }
 
 export async function resolveActiveEventSession(
-  db: postgres.Sql,
+  db: DbClient,
   options: ResolveActiveEventSessionOptions = {},
 ) {
   const defaultSlug = options.defaultSlug ?? DEFAULT_EVENT_SESSION_SLUG;
@@ -188,7 +185,7 @@ export async function resolveActiveEventSession(
   return setActiveEventSessionById(db, firstEvent.id);
 }
 
-export async function resolveEventSessionForRequest(db: postgres.Sql, requestedSlug: string | null) {
+export async function resolveEventSessionForRequest(db: DbClient, requestedSlug: string | null) {
   if (typeof requestedSlug === 'string' && requestedSlug.trim().length > 0) {
     const selected = await findEventSessionBySlug(db, requestedSlug.trim());
 
@@ -200,7 +197,7 @@ export async function resolveEventSessionForRequest(db: postgres.Sql, requestedS
   return resolveActiveEventSession(db);
 }
 
-export async function setActiveEventSession(db: postgres.Sql, options: SetActiveEventSessionOptions) {
+export async function setActiveEventSession(db: DbClient, options: SetActiveEventSessionOptions) {
   const eventId = typeof options.eventId === 'string' ? options.eventId.trim() : '';
   const slug = typeof options.slug === 'string' ? options.slug.trim() : '';
 

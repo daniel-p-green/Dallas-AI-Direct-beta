@@ -86,12 +86,9 @@ export async function POST(request: Request) {
 
     const { payload } = parsed;
     const nowIso = new Date().toISOString();
-
-    await db`begin`;
-
-    try {
+    const responsePayload = await db.withTransaction(async (tx) => {
       const attendees = payload.attendeeIds?.length
-        ? await db<AttendeeRow[]>`
+        ? await tx<AttendeeRow[]>`
             select
               id,
               name,
@@ -105,7 +102,7 @@ export async function POST(request: Request) {
             from attendees
             where id = any(${payload.attendeeIds}::uuid[])
           `
-        : await db<AttendeeRow[]>`
+        : await tx<AttendeeRow[]>`
             select
               id,
               name,
@@ -119,7 +116,7 @@ export async function POST(request: Request) {
             from attendees
           `;
 
-      const runRows = await db<{ id: string; generated_at: string }[]>`
+      const runRows = await tx<{ id: string; generated_at: string }[]>`
         insert into match_runs (
           algorithm_version,
           scoring_weights,
@@ -148,7 +145,7 @@ export async function POST(request: Request) {
           const rankPosition = index + 1;
           const publicCandidate = toPublicCandidate(candidate);
 
-          await db`
+          await tx`
             insert into attendee_matches (
               run_id,
               attendee_id,
@@ -193,9 +190,7 @@ export async function POST(request: Request) {
         byAttendee.push({ attendee_id: source.id, matches: safeMatches });
       }
 
-      await db`commit`;
-
-      return NextResponse.json({
+      return {
         run_id: run.id,
         generated_at: run.generated_at,
         algorithm_version: MATCH_SCORING_VERSION,
@@ -203,11 +198,10 @@ export async function POST(request: Request) {
         top_n: payload.topN,
         attendee_count: attendees.length,
         results: byAttendee
-      });
-    } catch {
-      await db`rollback`;
-      throw new Error('transaction_failed');
-    }
+      };
+    });
+
+    return NextResponse.json(responsePayload);
   } catch {
     return NextResponse.json({ error: 'Match generation failed.' }, { status: 500 });
   }

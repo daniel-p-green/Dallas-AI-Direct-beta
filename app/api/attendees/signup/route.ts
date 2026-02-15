@@ -46,6 +46,28 @@ function normalizeOptionalText(value: unknown) {
   return trimmed.length > 0 ? trimmed : null;
 }
 
+function normalizeSafeLinkedinUrl(value: unknown): { ok: true; url: string | null } | { ok: false } {
+  if (typeof value !== 'string') {
+    return { ok: true, url: null };
+  }
+
+  const normalized = value.trim();
+  if (normalized.length === 0) {
+    return { ok: true, url: null };
+  }
+
+  try {
+    const parsed = new URL(normalized);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return { ok: false };
+    }
+
+    return { ok: true, url: parsed.toString() };
+  } catch {
+    return { ok: false };
+  }
+}
+
 function toStringArray(values: unknown) {
   return Array.isArray(values) ? values.filter((value): value is string => typeof value === 'string') : [];
 }
@@ -163,13 +185,18 @@ function validate(body: unknown): { ok: true; payload: SignupPayload } | { ok: f
   }
 
   const honeypot = typeof source.honeypot === 'string' ? source.honeypot.trim() : '';
+  const normalizedLinkedinUrl = normalizeSafeLinkedinUrl(source.linkedin_url);
+
+  if (!normalizedLinkedinUrl.ok) {
+    return { ok: false, message: 'LinkedIn URL must use http or https.' };
+  }
 
   return {
     ok: true,
     payload: {
       name,
       email,
-      linkedin_url: normalizeOptionalText(source.linkedin_url),
+      linkedin_url: normalizedLinkedinUrl.url,
       title: normalizeOptionalText(source.title),
       company: normalizeOptionalText(source.company),
       display_title_company: Boolean(source.display_title_company),

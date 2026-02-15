@@ -24,6 +24,17 @@ type MatchRow = {
   reviewed_by: string | null;
 };
 
+class DecisionHttpError extends Error {
+  status: number;
+  body: Record<string, unknown>;
+
+  constructor(status: number, body: Record<string, unknown>) {
+    super(typeof body.error === 'string' ? body.error : 'decision_request_failed');
+    this.status = status;
+    this.body = body;
+  }
+}
+
 function parsePayload(body: unknown): { ok: true; payload: DecisionPayload } | { ok: false; message: string } {
   if (typeof body !== 'object' || body === null) {
     return { ok: false, message: 'Invalid request body.' };
@@ -85,11 +96,8 @@ async function decide(request: Request, context: { params: Promise<{ suggestionI
 
     const { payload } = parsed;
     const nextStatus = ACTION_TO_STATUS[payload.action];
-
-    await db`begin`;
-
-    try {
-      const rows = await db<MatchRow[]>`
+    const responsePayload = await db.withTransaction(async (tx) => {
+      const rows = await tx<MatchRow[]>`
         select id, run_id, status, reviewed_at, reviewed_by
         from attendee_matches
         where id = ${suggestionId}::uuid
@@ -97,25 +105,20 @@ async function decide(request: Request, context: { params: Promise<{ suggestionI
       `;
 
       if (rows.length === 0) {
-        await db`rollback`;
-        return NextResponse.json({ error: 'Suggestion not found.' }, { status: 404 });
+        throw new DecisionHttpError(404, { error: 'Suggestion not found.' });
       }
 
       const match = rows[0];
 
       if (match.status !== 'suggested') {
-        await db`rollback`;
-        return NextResponse.json(
-          {
-            error: 'Suggestion is already finalized.',
-            suggestion_id: match.id,
-            status: match.status
-          },
-          { status: 409 }
-        );
+        throw new DecisionHttpError(409, {
+          error: 'Suggestion is already finalized.',
+          suggestion_id: match.id,
+          status: match.status
+        });
       }
 
-      const updatedRows = await db<MatchRow[]>`
+      const updatedRows = await tx<MatchRow[]>`
         update attendee_matches
         set
           status = ${nextStatus},
@@ -127,13 +130,12 @@ async function decide(request: Request, context: { params: Promise<{ suggestionI
       `;
 
       if (updatedRows.length !== 1) {
-        await db`rollback`;
-        return NextResponse.json({ error: 'Invalid status transition.' }, { status: 409 });
+        throw new DecisionHttpError(409, { error: 'Invalid status transition.' });
       }
 
       const updated = updatedRows[0];
 
-      const eventRows = await db<{ id: string; created_at: string }[]>`
+      const eventRows = await tx<{ id: string; created_at: string }[]>`
         insert into match_decision_events (
           match_id,
           run_id,
@@ -152,13 +154,10 @@ async function decide(request: Request, context: { params: Promise<{ suggestionI
       `;
 
       if (eventRows.length !== 1) {
-        await db`rollback`;
-        return NextResponse.json({ error: 'Decision audit event write failed.' }, { status: 500 });
+        throw new DecisionHttpError(500, { error: 'Decision audit event write failed.' });
       }
 
-      await db`commit`;
-
-      return NextResponse.json({
+      return {
         suggestion_id: updated.id,
         run_id: updated.run_id,
         status: updated.status,
@@ -171,12 +170,18 @@ async function decide(request: Request, context: { params: Promise<{ suggestionI
           actor: payload.actor,
           reason: payload.reason
         }
-      });
-    } catch {
-      await db`rollback`;
-      throw new Error('decision_transaction_failed');
+      };
+    });
+
+    return NextResponse.json(responsePayload);
+  } catch (error) {
+    if (error instanceof DecisionHttpError) {
+      if (error.status === 409) {
+        return NextResponse.json(error.body, { status: 409 });
+      }
+      return NextResponse.json(error.body, { status: error.status });
     }
-  } catch {
+
     return NextResponse.json({ error: 'Decision update failed.' }, { status: 500 });
   }
 }
