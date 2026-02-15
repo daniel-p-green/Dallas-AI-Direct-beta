@@ -20,7 +20,8 @@ Add multi-event support with active session selection, event-scoped signup/room 
 - [x] US-004: Signup event association + active check-in window enforcement (`403 CHECK_IN_WINDOW_CLOSED`)
 - [x] US-005: Room board event filtering + aggregates (event-only active-session query + comfort distribution aggregate)
 - [x] US-006: Organizer admin UI for create-session, active-session switching, and check-in window validation/errors
-- [ ] US-007+: Remaining docs/final verification stories
+- [x] US-007: Ensure default active-event fallback keeps existing flows functional
+- [ ] US-008+: Remaining docs/final verification stories
 
 ## Notes
 - Preserve current flows through a default active event fallback.

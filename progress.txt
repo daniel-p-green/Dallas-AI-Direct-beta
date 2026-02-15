@@ -4,6 +4,7 @@ Task: Project: Dallas AI Direct Alpha. Task: Create a minimal brand implementati
 Started: 2026-02-12 03:02 America/Chicago
 
 ## Codebase Patterns
+- Active-event resolver should self-heal unconfigured environments by upserting/activating `legacy-default-session` at request time so signup and room flows stay live after deploy.
 - Admin mutation flows should pair lightweight client-side guardrails (for immediate UX feedback) with authoritative API validation/error messages so organizer forms stay responsive without drifting from backend rules.
 - Room-board event scoping should use dual query branches: active/selected session reads `event_id = activeEvent.id`, while legacy fallback reads only `event_id is null` to avoid mixing session metrics.
 - Operational runbook stories should add node:test phrase-contract coverage across both `docs/` and `ops/` artifacts so runtime/incident-response guidance stays executable and drift-resistant.
@@ -364,4 +365,11 @@ Started: 2026-02-12 03:02 America/Chicago
 - Hardened `app/api/events/route.ts` with window/date validation (`422`), duplicate slug conflict handling (`409`), and explicit create-path parsing for check-in windows and session boundaries.
 - Updated source-contract tests in `tests/admin-review-ui.test.mjs` and `tests/event-session-runtime.test.mjs`; refreshed event-session plan tracking in `plans/2026-02-15-event-session-mode.md`.
 - **Learnings:** Admin mutation flows should keep UI validation as fast feedback only, with backend validations/errors treated as the source of truth and surfaced directly in the UI.
+---
+## 2026-02-15 12:17 America/Chicago - US-007: Ensure default active-event fallback keeps existing flows functional
+- Updated `lib/event-session.ts` active-session resolution to auto-upsert `legacy-default-session` when no active session exists, then enforce single-active activation so request-time signup/room flows self-heal in unconfigured environments.
+- Refactored activation internals around shared `setActiveEventSessionById` + slug lookup helpers to keep activation logic deterministic across resolver and organizer APIs.
+- Added regression coverage in `tests/event-session-selection-service.test.mjs` for runtime fallback upsert/activation behavior and shared resolver wiring used by signup/room endpoints.
+- Updated compatibility docs in `docs/event-session-migration.md` and runtime validation expectations in `docs/runtime-validation.md`; updated plan tracking in `plans/2026-02-15-event-session-mode.md`.
+- **Learnings:** Event-session fallback should be runtime self-healing (not just migration-time) because some environments deploy code before backfill setup is manually confirmed.
 ---

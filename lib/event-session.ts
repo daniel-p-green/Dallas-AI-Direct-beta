@@ -1,6 +1,7 @@
 import type postgres from 'postgres';
 
 export const DEFAULT_EVENT_SESSION_SLUG = 'legacy-default-session';
+const DEFAULT_EVENT_SESSION_NAME = 'Legacy Default Session';
 
 export type EventSession = {
   id: string;
@@ -46,8 +47,8 @@ async function findExplicitActiveEventSession(db: postgres.Sql) {
   return rows[0] ?? null;
 }
 
-async function findDefaultEventSession(db: postgres.Sql, defaultSlug: string) {
-  const defaultRows = await db<EventSessionRow[]>`
+async function findEventSessionBySlug(db: postgres.Sql, slug: string) {
+  const rows = await db<EventSessionRow[]>`
     select
       id,
       slug,
@@ -59,16 +60,16 @@ async function findDefaultEventSession(db: postgres.Sql, defaultSlug: string) {
       is_active,
       created_at
     from public.events
-    where slug = ${defaultSlug}
+    where slug = ${slug}
     order by created_at asc, id asc
     limit 1
   `;
 
-  if (defaultRows[0]) {
-    return defaultRows[0];
-  }
+  return rows[0] ?? null;
+}
 
-  const fallbackRows = await db<EventSessionRow[]>`
+async function findFirstEventSession(db: postgres.Sql) {
+  const rows = await db<EventSessionRow[]>`
     select
       id,
       slug,
@@ -84,7 +85,67 @@ async function findDefaultEventSession(db: postgres.Sql, defaultSlug: string) {
     limit 1
   `;
 
-  return fallbackRows[0] ?? null;
+  return rows[0] ?? null;
+}
+
+async function setActiveEventSessionById(db: postgres.Sql, eventId: string) {
+  await db`begin`;
+  try {
+    await db`update public.events set is_active = false where is_active = true`;
+
+    const updated = await db<{ id: string }[]>`
+      update public.events
+      set is_active = true,
+          updated_at = now()
+      where id = ${eventId}
+      returning id
+    `;
+
+    if (updated.length === 0) {
+      await db`rollback`;
+      return null;
+    }
+
+    await db`commit`;
+  } catch (error) {
+    await db`rollback`;
+    throw error;
+  }
+
+  return findExplicitActiveEventSession(db);
+}
+
+async function ensureDefaultEventSession(db: postgres.Sql, defaultSlug: string) {
+  const existingDefault = await findEventSessionBySlug(db, defaultSlug);
+
+  if (existingDefault) {
+    return existingDefault;
+  }
+
+  const inserted = await db<EventSessionRow[]>`
+    insert into public.events (slug, name, is_active, metadata)
+    values (
+      ${defaultSlug},
+      ${DEFAULT_EVENT_SESSION_NAME},
+      true,
+      jsonb_build_object('source', 'runtime_fallback', 'resolver', 'resolveActiveEventSession')
+    )
+    on conflict (slug) do update
+      set name = excluded.name,
+          metadata = coalesce(public.events.metadata, '{}'::jsonb) || excluded.metadata
+    returning
+      id,
+      slug,
+      name,
+      starts_at,
+      ends_at,
+      check_in_window_start,
+      check_in_window_end,
+      is_active,
+      created_at
+  `;
+
+  return inserted[0] ?? findEventSessionBySlug(db, defaultSlug);
 }
 
 export async function getActiveEventSession(db: postgres.Sql) {
@@ -95,36 +156,44 @@ export async function resolveActiveEventSession(
   db: postgres.Sql,
   options: ResolveActiveEventSessionOptions = {},
 ) {
+  const defaultSlug = options.defaultSlug ?? DEFAULT_EVENT_SESSION_SLUG;
   const active = await findExplicitActiveEventSession(db);
 
   if (active) {
     return active;
   }
 
-  return findDefaultEventSession(db, options.defaultSlug ?? DEFAULT_EVENT_SESSION_SLUG);
+  const defaultEvent = await ensureDefaultEventSession(db, defaultSlug);
+
+  if (defaultEvent) {
+    if (defaultEvent.is_active) {
+      return defaultEvent;
+    }
+
+    const activatedDefault = await setActiveEventSessionById(db, defaultEvent.id);
+    if (activatedDefault) {
+      return activatedDefault;
+    }
+  }
+
+  const firstEvent = await findFirstEventSession(db);
+  if (!firstEvent) {
+    return null;
+  }
+
+  if (firstEvent.is_active) {
+    return firstEvent;
+  }
+
+  return setActiveEventSessionById(db, firstEvent.id);
 }
 
 export async function resolveEventSessionForRequest(db: postgres.Sql, requestedSlug: string | null) {
   if (typeof requestedSlug === 'string' && requestedSlug.trim().length > 0) {
-    const rows = await db<EventSessionRow[]>`
-      select
-        id,
-        slug,
-        name,
-        starts_at,
-        ends_at,
-        check_in_window_start,
-        check_in_window_end,
-        is_active,
-        created_at
-      from public.events
-      where slug = ${requestedSlug.trim()}
-      order by created_at asc, id asc
-      limit 1
-    `;
+    const selected = await findEventSessionBySlug(db, requestedSlug.trim());
 
-    if (rows[0]) {
-      return rows[0];
+    if (selected) {
+      return selected;
     }
   }
 
@@ -139,36 +208,14 @@ export async function setActiveEventSession(db: postgres.Sql, options: SetActive
     throw new Error('eventId or slug is required to set active session.');
   }
 
-  await db`begin`;
-  try {
-    await db`update public.events set is_active = false where is_active = true`;
-
-    const updated = eventId
-      ? await db<{ id: string }[]>`
-          update public.events
-          set is_active = true,
-              updated_at = now()
-          where id = ${eventId}
-          returning id
-        `
-      : await db<{ id: string }[]>`
-          update public.events
-          set is_active = true,
-              updated_at = now()
-          where slug = ${slug}
-          returning id
-        `;
-
-    if (updated.length === 0) {
-      await db`rollback`;
-      return null;
-    }
-
-    await db`commit`;
-  } catch (error) {
-    await db`rollback`;
-    throw error;
+  if (eventId) {
+    return setActiveEventSessionById(db, eventId);
   }
 
-  return resolveActiveEventSession(db);
+  const event = await findEventSessionBySlug(db, slug);
+  if (!event) {
+    return null;
+  }
+
+  return setActiveEventSessionById(db, event.id);
 }

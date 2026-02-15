@@ -35,7 +35,7 @@ and facilitator decisions are fully auditable.
 - Out-of-range comfort level fails.
 - Injected HTML renders escaped text only.
 - Active event lookup returns one active session at a time.
-- Signup writes include `event_id` when an active event exists; legacy fallback remains `null` when no active event is configured.
+- Signup/runtime requests auto-resolve an active event session; if none exists, resolver creates/activates `legacy-default-session` so signup writes keep a non-null `event_id`.
 - Signup attempts outside the active event check-in window return `403` with `code: "CHECK_IN_WINDOW_CLOSED"`.
 - Room board API returns event-scoped attendees plus scoped aggregate metrics.
 - Deterministic match replay returns identical ordered suggestion IDs and score values.

@@ -22,4 +22,4 @@ Provide a backward-compatible path for deployments that already have attendee ro
 ## Rollback-safe assumptions
 - This migration is additive and does not delete attendee rows.
 - Existing operator-selected active event is preserved.
-- Read compatibility remains in place during rollout via room API fallback (`event_id = active OR event_id IS NULL`).
+- Runtime fallback now auto-creates/activates `legacy-default-session` when no active event exists, so signup and room flows remain operational without manual organizer setup.
