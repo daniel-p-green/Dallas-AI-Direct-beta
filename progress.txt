@@ -16,6 +16,7 @@ Started: 2026-02-12 03:02 America/Chicago
 - For write-heavy API routes using `postgres` tagged templates, explicit `begin`/`commit`/`rollback` statements provide straightforward transactional control that keeps TypeScript checks simple.
 - Queue/list APIs should enforce deterministic ordering with `ORDER BY created_at DESC, id ASC` to keep pagination stable across repeated facilitator fetches.
 - Decision/update APIs should lock target rows with `SELECT ... FOR UPDATE` and gate transitions (`status='suggested'`) before writing immutable audit events.
+- Facilitator admin actions should use optimistic queue removal plus background re-fetch to keep UI responsive without full page reloads.
 
 ---
 ## 2026-02-12 03:03 America/Chicago - US-001: Create Geist-aligned brand guidelines document
@@ -113,4 +114,12 @@ Started: 2026-02-12 03:02 America/Chicago
 - Added `tests/match-decision-endpoint.test.mjs` contract tests for action validation, atomic update+audit write checks, transition guardrails, and privacy boundary assertions.
 - Updated `plans/2026-02-15-invite-match-engine.md` with US-005 completion checklist.
 - **Learnings:** For replay-safe facilitator decisions, explicit row locking plus status guard checks in the same transaction keeps status transitions deterministic and audit trails one-event-per-decision.
+---
+## 2026-02-15 04:14 America/Chicago - US-006: Build admin UI flow to review and act on suggested matches
+- Replaced `app/admin/page.tsx` placeholder controls with a facilitator queue UI that fetches pending suggestions, renders pairing cards, and shows score breakdown metrics.
+- Wired approve/reject buttons to `POST /api/matches/[suggestionId]/decision` with optimistic removal, pending button states, and success/error feedback plus background queue refresh.
+- Ensured privacy-safe rendering in UI by showing only safe payload fields and falling back to `Profile private` when title/company are unavailable.
+- Added admin UI flow test coverage in `tests/admin-review-ui.test.mjs` and responsive admin styles in `app/globals.css`.
+- Updated `plans/2026-02-15-invite-match-engine.md` with US-006 completion checklist.
+- **Learnings:** Optimistic local queue updates combined with immediate re-fetch keeps facilitator actions fast while preserving backend source-of-truth consistency.
 ---

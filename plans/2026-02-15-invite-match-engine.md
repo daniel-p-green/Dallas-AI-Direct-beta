@@ -35,3 +35,10 @@ Implement deterministic attendee matching, facilitator approval workflow, audit 
 - [x] Enforce transition guardrails (`suggested` -> `approved|rejected`) and return non-2xx for finalized suggestions
 - [x] Persist match status update + immutable `match_decision_events` row in a single transaction
 - [x] Return facilitator-safe response payload with no private attendee fields and add contract tests
+
+## Story focus (US-006)
+- [x] Replace admin placeholder UI with facilitator queue list and score breakdown cards from queue API
+- [x] Wire approve/reject controls to decision endpoint with optimistic local update and background refresh
+- [x] Render success/error states and pending-action button state for operator feedback
+- [x] Keep UI privacy-safe by showing consent-safe title/company fields only and no email rendering
+- [x] Add UI flow tests covering queue fetch wiring, decision actions, and privacy guardrails
