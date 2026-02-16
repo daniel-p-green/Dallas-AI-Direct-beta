@@ -154,6 +154,8 @@ Go/No-Go requires all privacy and boundary checks to pass.
 References:
 - `docs/runtime-validation.md`
 - `ops/preflight.md`
+- `docs/traceability-matrix.md`
+- `docs/handoff/README.md`
 - `tests/ui-mobile-audit.md`
 
 If documentation conflicts, prioritize:
@@ -206,6 +208,12 @@ NEXT_PUBLIC_ATTENDEE_AUTH_REQUIRED=false # set true for public beta auth gating
 # CLERK_SECRET_KEY=...
 ```
 
+### Auth posture defaults
+
+- Recommended handoff mode: gated attendee auth (`NEXT_PUBLIC_ATTENDEE_AUTH_REQUIRED=true`) for public beta.
+- If attendee auth is required but Clerk keys are missing, attendee auth endpoints fail closed with explicit setup errors.
+- `/admin` is an authenticated operational surface for facilitator decisions and audit-linked actions.
+
 Run bootstrap readiness checks:
 
 ```bash
@@ -240,6 +248,7 @@ npm run build
 Also run the privacy/runtime checks in:
 - `docs/runtime-validation.md`
 - `ops/preflight.md`
+- `docs/handoff/operator-checklist.md`
 
 ## Setup Overview (High level)
 

@@ -187,9 +187,19 @@ function validate(body: unknown): { ok: true; payload: SignupPayload } | { ok: f
 
   const honeypot = typeof source.honeypot === 'string' ? source.honeypot.trim() : '';
   const normalizedLinkedinUrl = normalizeSafeLinkedinUrl(source.linkedin_url);
+  const otherHelpNeeded = normalizeOptionalText(source.other_help_needed);
+  const otherHelpOffered = normalizeOptionalText(source.other_help_offered);
 
   if (!normalizedLinkedinUrl.ok) {
     return { ok: false, message: 'LinkedIn URL must use http or https.' };
+  }
+
+  if (otherHelpNeeded && otherHelpNeeded.length > 500) {
+    return { ok: false, message: 'Other help needed must be 500 characters or fewer.' };
+  }
+
+  if (otherHelpOffered && otherHelpOffered.length > 500) {
+    return { ok: false, message: 'Other help offered must be 500 characters or fewer.' };
   }
 
   return {
@@ -205,8 +215,8 @@ function validate(body: unknown): { ok: true; payload: SignupPayload } | { ok: f
       help_needed: toStringArray(source.help_needed),
       help_offered: toStringArray(source.help_offered),
       honeypot,
-      other_help_needed: normalizeOptionalText(source.other_help_needed),
-      other_help_offered: normalizeOptionalText(source.other_help_offered),
+      other_help_needed: otherHelpNeeded,
+      other_help_offered: otherHelpOffered,
     },
   };
 }

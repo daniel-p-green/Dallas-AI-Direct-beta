@@ -73,8 +73,8 @@ export function SignupForm() {
       help_needed: helpNeeded,
       help_offered: helpOffered,
       honeypot: "",
-      other_help_needed: null,
-      other_help_offered: null,
+      other_help_needed: normalize(fd.get("other_help_needed")),
+      other_help_offered: normalize(fd.get("other_help_offered")),
     }
 
     setStatus({ type: "submitting" })
@@ -280,6 +280,34 @@ export function SignupForm() {
               </button>
             ))}
           </div>
+        </Field>
+
+        <Field
+          label="Other help needed"
+          hint="Optional free-text detail for nuanced asks (max 500 chars)."
+        >
+          <textarea
+            id="other_help_needed"
+            name="other_help_needed"
+            maxLength={500}
+            rows={3}
+            placeholder="Example: Looking for a design partner for an applied AI product pilot."
+            className="form-textarea"
+          />
+        </Field>
+
+        <Field
+          label="Other help offered"
+          hint="Optional free-text detail for specific support you can provide (max 500 chars)."
+        >
+          <textarea
+            id="other_help_offered"
+            name="other_help_offered"
+            maxLength={500}
+            rows={3}
+            placeholder="Example: Can mentor founders on AI product strategy and GTM."
+            className="form-textarea"
+          />
         </Field>
 
         {/* Divider */}

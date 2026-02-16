@@ -5,6 +5,9 @@
 Prove the live demo does not expose sensitive data, matching stays reproducible,
 and facilitator decisions are fully auditable.
 
+This checklist treats `/admin` as an authenticated operational surface. It is not
+a public demo utility route.
+
 ## 15-minute checklist
 
 1. Confirm environment banner shows intended environment.
@@ -30,6 +33,8 @@ and facilitator decisions are fully auditable.
 21. Confirm signup trust logs contain hashed/redacted identifiers only (`emailHash`, `emailRedacted`, `ipHash`) and no raw email/IP values.
 22. Confirm attendee auth logs include request/verify/session events and redact email in logs.
 23. Run mobile QR sanity validation and record evidence from `tests/ui-mobile-audit.md` and `tests/ui-mobile-audit.spec.ts`.
+24. Confirm `/admin` requires authenticated access and facilitator actions succeed with auditable decision events.
+25. If attendee auth is required but Clerk keys are unavailable, verify fallback is explicit (`503` for attendee auth endpoints) and mark release as No-Go.
 
 ## Expected outputs
 
@@ -70,3 +75,4 @@ Use `docs/PRE-DEMO-COMMAND-CARD.md` as the execution order for pre-demo checks.
 - Disable facilitator decision actions for the session if audit writes fail.
 - Present `docs/rls-policies.md` and `docs/privacy-and-consent.md`.
 - State mitigation and next remediation step.
+- If gated attendee auth is misconfigured, fail closed and follow `docs/handoff/go-no-go-signoff.md`.

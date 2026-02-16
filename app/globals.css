@@ -91,6 +91,12 @@
   @apply focus-ring h-12 w-full rounded-xl border border-border bg-card px-4 text-sm text-foreground placeholder:text-muted-foreground transition-colors;
 }
 
+.form-textarea {
+  @apply focus-ring w-full rounded-xl border border-border bg-card px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground transition-colors;
+  min-height: 96px;
+  resize: vertical;
+}
+
 /* ---- Card animations ---- */
 @keyframes card-enter {
   from {
