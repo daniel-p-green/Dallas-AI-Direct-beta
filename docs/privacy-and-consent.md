@@ -1,4 +1,4 @@
-# Privacy and consent (Alpha)
+# Privacy and consent (Beta)
 
 ## Data collected
 
@@ -14,7 +14,7 @@
 ## Purpose limitation
 
 - Use attendee data to support live room visibility and peer matching.
-- Do not use attendee data for unrelated marketing in alpha.
+- Do not use attendee data for unrelated marketing in beta.
 - Process only the fields required for documented product behavior.
 
 ## Who can see what
@@ -32,14 +32,14 @@
 
 Directory reads must come from `attendees_public` only.
 
-## Retention assumptions for alpha
+## Retention assumptions for beta
 
 - Keep data only for short-term pilot evaluation.
 - Default target: purge within 30 days after event close unless an
   extension receives explicit approval.
 - Track retention decisions per event run.
 
-## Opt-out and deletion process for alpha
+## Opt-out and deletion process for beta
 
 1. Attendee submits deletion request through organizer channel.
 2. Operator verifies requestor control of submitted email.

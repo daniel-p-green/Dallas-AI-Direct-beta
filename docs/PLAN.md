@@ -1,4 +1,4 @@
-# Plan of Record: Dallas AI Direct Alpha
+# Plan of Record: Dallas AI Direct Beta
 
 ## Goal
 
@@ -43,7 +43,7 @@ The board never shows `email`.
 | Security boundary | Database controls first | Enforces policy even if UI fails |
 | Public reads | `attendees_public` view | Prevents accidental email exposure |
 | Optional fields | `title`, `company` (displayed only with explicit consent) | Aligns schema with on-stage narrative while keeping optional profile data opt-in |
-| Alpha gate | Optional password gate | Convenience only, not primary security |
+| Beta gate | Optional password gate | Convenience only, not primary security |
 
 ## Failure modes and pivots
 
