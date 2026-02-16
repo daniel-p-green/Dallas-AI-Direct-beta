@@ -26,7 +26,7 @@
 - [x] Run `npm test`.
 - [x] Run `npm run build`.
 - [x] Commit and push fix to `main`.
-- [ ] Confirm Vercel production deployment is ready.
+- [x] Confirm Vercel production deployment is ready.
 
 ## Verification plan
 - `npm run typecheck`
