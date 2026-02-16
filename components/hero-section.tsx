@@ -23,12 +23,14 @@ export function HeroSection() {
         Dallas AI Direct
       </p>
 
-      <h1 className="mt-5 max-w-[720px] text-balance text-[clamp(2.25rem,6vw,4rem)] font-bold leading-[1.1] tracking-tight">
-        Connecting 10,000+ minds building the future of AI in Dallas.
+      <h1 className="mt-5 max-w-[1120px] text-[clamp(2.25rem,6.1vw,5.25rem)] font-bold leading-[1.08] tracking-tight">
+        <span className="block">Connecting 10,000+ minds building the</span>
+        <span className="block">future of AI in Dallas.</span>
       </h1>
 
-      <p className="mt-5 max-w-lg text-pretty text-base leading-relaxed text-muted-foreground md:text-lg md:leading-relaxed">
-        The live directory for Dallas AI events. Share what you are working on, find the right people, and turn every meetup into your next opportunity.
+      <p className="mt-5 max-w-[920px] text-base leading-relaxed text-muted-foreground md:text-xl md:leading-relaxed">
+        <span className="block">The live directory for Dallas AI events. Share what you are working on,</span>
+        <span className="block">find the right people, and turn every meetup into your next opportunity.</span>
       </p>
 
       <div className="mt-10 flex w-full max-w-xs flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center">

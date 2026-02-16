@@ -507,7 +507,7 @@ export function RoomBoard() {
           placeholder="Search by name, title, or company..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="form-input pl-11"
+          className="form-input !pl-12"
         />
       </div>
 
