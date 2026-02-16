@@ -2,7 +2,7 @@ import type { ReactNode } from "react"
 import type { Metadata, Viewport } from "next"
 import { GeistSans } from "geist/font/sans"
 import { GeistMono } from "geist/font/mono"
-import { ClerkProvider } from '@clerk/nextjs'
+import { OptionalClerkProvider } from "@/components/optional-clerk-provider"
 import { SharedHeader } from "@/components/shared-header"
 import { SharedFooter } from "@/components/shared-footer"
 import "./globals.css"
@@ -56,18 +56,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       suppressHydrationWarning
     >
       <body className="flex min-h-screen flex-col font-sans">
-        {attendeeAuthEnabled ? (
-          <ClerkProvider
-            signInUrl="/sign-in"
-            signUpUrl="/sign-up"
-            afterSignInUrl="/api/auth/attendee/verify-link?next=/room"
-            afterSignUpUrl="/api/auth/attendee/verify-link?next=/room"
-          >
-            {shell}
-          </ClerkProvider>
-        ) : (
-          shell
-        )}
+        <OptionalClerkProvider enabled={attendeeAuthEnabled}>{shell}</OptionalClerkProvider>
       </body>
     </html>
   )

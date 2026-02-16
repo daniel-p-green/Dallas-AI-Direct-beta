@@ -55,7 +55,7 @@ export function SharedHeader() {
       >
         <Link
           href="/"
-          className="focus-ring flex items-center gap-2.5 rounded-md"
+          className="focus-ring flex min-h-11 items-center gap-2.5 rounded-md"
         >
           <Image
             src="/brand/dallas-ai-logo-white.png"
@@ -91,7 +91,7 @@ export function SharedHeader() {
               href="https://dallas-ai.org/"
               target="_blank"
               rel="noopener noreferrer"
-              className="btn btn-primary ml-1 min-h-9 px-4 text-xs"
+              className="btn btn-primary ml-1 px-4 text-xs"
             >
               Join Dallas AI
             </a>
@@ -101,7 +101,7 @@ export function SharedHeader() {
         {/* Mobile hamburger */}
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="focus-ring flex h-9 w-9 items-center justify-center rounded-lg transition-colors hover:bg-secondary sm:hidden"
+          className="focus-ring flex h-11 w-11 items-center justify-center rounded-lg transition-colors hover:bg-secondary sm:hidden"
           aria-label={mobileOpen ? "Close menu" : "Open menu"}
           aria-expanded={mobileOpen}
         >
@@ -143,7 +143,7 @@ export function SharedHeader() {
               href="https://dallas-ai.org/"
               target="_blank"
               rel="noopener noreferrer"
-              className="btn btn-primary mt-3 min-h-10 w-full text-xs"
+              className="btn btn-primary mt-3 w-full text-xs"
             >
               Join Dallas AI
             </a>
@@ -167,7 +167,7 @@ function NavLink({
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`focus-ring rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
+      className={`focus-ring inline-flex min-h-11 items-center rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
         active
           ? "bg-secondary text-foreground"
           : "text-muted-foreground hover:text-foreground"
@@ -191,7 +191,7 @@ function MobileNavLink({
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={`focus-ring rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
+      className={`focus-ring inline-flex min-h-11 items-center rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
         active
           ? "bg-secondary text-foreground"
           : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
