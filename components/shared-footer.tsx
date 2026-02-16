@@ -41,7 +41,7 @@ export function SharedFooter() {
               href="https://www.linkedin.com/in/danielpgreen"
               target="_blank"
               rel="noopener noreferrer"
-              className="focus-ring rounded-sm font-medium text-foreground underline decoration-border underline-offset-2 transition-colors hover:decoration-foreground"
+              className="focus-ring inline-flex min-h-11 items-center rounded-sm px-1 font-medium text-foreground underline decoration-border underline-offset-2 transition-colors hover:decoration-foreground"
             >
               Daniel Green
             </a>
@@ -51,7 +51,7 @@ export function SharedFooter() {
             href="https://v0.dev"
             target="_blank"
             rel="noopener noreferrer"
-            className="focus-ring flex items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+            className="focus-ring flex min-h-11 items-center gap-1.5 rounded-full border border-border px-3 py-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
             aria-label="Built with v0 by Vercel"
           >
             <span>Built with</span>

@@ -159,6 +159,35 @@ export function RoomBoard() {
   useEffect(() => {
     let active = true
 
+    function useSeedFallback(message: string) {
+      setDataMode("seed")
+      setNotice(message)
+      setAttendees(fallback)
+      setActiveEvent(null)
+      setMeetSuggestions([])
+      setMeetNotice("No introductions yet. Once facilitator matches are generated, this list will populate.")
+      setAggregates({
+        attendeeCount: fallback.length,
+        averageComfort:
+          fallback.length > 0
+            ? Number(
+                (
+                  fallback.reduce((sum, attendee) => sum + attendee.ai_comfort_level, 0) /
+                  fallback.length
+                ).toFixed(1)
+              )
+            : 0,
+        highComfortPct:
+          fallback.length > 0
+            ? Math.round(
+                (fallback.filter((attendee) => attendee.ai_comfort_level >= 4).length /
+                  fallback.length) *
+                  100
+              )
+            : 0,
+      })
+    }
+
     async function loadSuggestions(eventSlug: string | null) {
       const params = new URLSearchParams()
       params.set("limit", "4")
@@ -264,32 +293,15 @@ export function RoomBoard() {
 
         if (!res.ok || !json.data) {
           if (active) {
-            setDataMode("seed")
-            setNotice("Live data unavailable. Showing sample data.")
-            setAttendees(fallback)
-            setActiveEvent(null)
-            setMeetSuggestions([])
-            setMeetNotice("No introductions yet. Once facilitator matches are generated, this list will populate.")
-            setAggregates({
-              attendeeCount: fallback.length,
-              averageComfort:
-                fallback.length > 0
-                  ? Number(
-                      (
-                        fallback.reduce((sum, attendee) => sum + attendee.ai_comfort_level, 0) /
-                        fallback.length
-                      ).toFixed(1)
-                    )
-                  : 0,
-              highComfortPct:
-                fallback.length > 0
-                  ? Math.round(
-                      (fallback.filter((attendee) => attendee.ai_comfort_level >= 4).length /
-                        fallback.length) *
-                        100
-                    )
-                  : 0,
-            })
+            const fallbackMessage =
+              res.status === 401
+                ? "Sign in to view live directory data. Showing sample data."
+                : json.error === "Attendee auth unavailable. Configure Clerk keys for public beta mode."
+                  ? "Live directory is paused until attendee auth is configured. Showing sample data."
+                  : res.status === 503
+                    ? "Live directory is temporarily unavailable. Showing sample data."
+                    : "Live data unavailable. Showing sample data."
+            useSeedFallback(fallbackMessage)
           }
           return
         }
@@ -349,32 +361,7 @@ export function RoomBoard() {
         }
       } catch {
         if (active) {
-          setDataMode("seed")
-          setNotice("Live data unavailable. Showing sample data.")
-          setAttendees(fallback)
-          setActiveEvent(null)
-          setMeetSuggestions([])
-          setMeetNotice("No introductions yet. Once facilitator matches are generated, this list will populate.")
-          setAggregates({
-            attendeeCount: fallback.length,
-            averageComfort:
-              fallback.length > 0
-                ? Number(
-                    (
-                      fallback.reduce((sum, attendee) => sum + attendee.ai_comfort_level, 0) /
-                      fallback.length
-                    ).toFixed(1)
-                  )
-                : 0,
-            highComfortPct:
-              fallback.length > 0
-                ? Math.round(
-                    (fallback.filter((attendee) => attendee.ai_comfort_level >= 4).length /
-                      fallback.length) *
-                      100
-                  )
-                : 0,
-          })
+          useSeedFallback("Connection issue while loading live data. Showing sample data.")
         }
       }
     }

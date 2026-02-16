@@ -149,7 +149,10 @@ export default function LoginPage() {
       </form>
 
       <p className="mt-6 text-center text-xs text-muted-foreground">
-        <Link href="/" className="focus-ring rounded-sm underline underline-offset-2 hover:text-foreground">
+        <Link
+          href="/"
+          className="focus-ring inline-flex min-h-11 items-center rounded-sm px-2 underline underline-offset-2 hover:text-foreground"
+        >
           Back to Dallas AI Direct
         </Link>
       </p>
