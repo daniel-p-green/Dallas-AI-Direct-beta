@@ -1,6 +1,8 @@
 # Dallas AI Direct – Beta (Open Source)
 
-Reference implementation for a governed, community-owned attendee directory built for live events.
+A privacy-first, community-owned attendee directory for live events.
+
+> Built to help operators run better rooms in real time without exposing private attendee data.
 
 ---
 
@@ -8,31 +10,24 @@ Reference implementation for a governed, community-owned attendee directory buil
 
 - License: MIT (`LICENSE`)
 - Intended maintainers: Dallas AI developer community
-- Handoff/process notes: `GOVERNANCE.md`
+- Governance and handoff notes: `GOVERNANCE.md`
 - Contribution guide: `CONTRIBUTING.md`
 
-## Executive Summary
+## Why This Exists
 
-Dallas AI Direct Beta is a free, open-source attendee directory for live events, built with privacy and governance at the database boundary. It is not a paid membership product. The architecture enforces access with Postgres RLS and a projection view (`attendees_public`) that excludes email from public reads. The design uses explicit consent for optional profile visibility and keeps sensitive data private by default. The live demo proves a simple hero moment: QR signup in about 30 seconds, room board update within 5 seconds, and no public email exposure. This repository demonstrates a repeatable AI Infrastructure Sprint pattern that delivers a working artifact in hours, not a slide deck.
+Dallas AI Direct Beta is free, open-source software for event attendee visibility. It is not a paid subscription product.
 
----
+Teams need real-time attendee context during events, but most tools blur the line between public display and private data handling. This repo demonstrates a safer pattern: enforce policy at the database boundary, project only public-safe fields, and keep private fields private by default.
 
-## Product Clarification
+## At a Glance
 
-Dallas AI Direct Beta is free and open source software for event attendee visibility. It is not a paid subscription product.
-
-## Business Constraint
-
-Teams need real-time attendee visibility during events without exposing private attendee data and without relying on opaque third-party access controls.
-
-## Practical value delivered
-
-- Replace dependency risk with owned, auditable infrastructure.
-- Keep email private by design, enforced at the DB boundary.
-- Preserve optional profile visibility through explicit attendee consent.
-- Improve operator confidence with deterministic pre-demo validation gates.
-
----
+| Outcome | How this repo delivers it |
+| --- | --- |
+| Faster check-in flow | QR signup in about 30 seconds |
+| Reliable room visibility | Board updates every ~5 seconds |
+| Privacy-safe output | `attendees_public` view excludes email from public reads |
+| Governed operations | RLS + constraints + deterministic validation gates |
+| Operator confidence | Reproducible `typecheck`, `test`, and `build` checks |
 
 ## Hero Moment
 
@@ -61,7 +56,7 @@ npm run demo:remotion:check
 
 ---
 
-## Architecture Overview
+## Architecture Snapshot
 
 ```text
 Client (QR + Browser)
@@ -89,8 +84,6 @@ Room Board (Polling every 5s)
 - Separates base table writes from public reads.
 - Uses polling over realtime for demo reliability and lower operational variance.
 
----
-
 ## Data Model and Consent Design
 
 ### Core fields
@@ -99,18 +92,16 @@ Room Board (Polling every 5s)
 - Optional: `linkedin_url`, `title`, `company`, `other_help_needed`, `other_help_offered`
 - Consent flag: `display_title_company` (default `false`)
 
-### Design principles in data model
+### Data principles
 
-- **Least privilege:** public UI reads from projection only.
-- **Projection boundary:** `attendees_public` excludes sensitive/private fields.
-- **Explicit consent:** title/company display requires opt-in.
-- **Sensitive-by-default:** email remains private across public flows.
-
----
+- Least privilege: public UI reads from projection only.
+- Projection boundary: `attendees_public` excludes sensitive/private fields.
+- Explicit consent: `title` and `company` display requires opt-in.
+- Sensitive-by-default: email remains private across public flows.
 
 ## Security Posture
 
-### 1) Database controls
+### Database controls
 
 - RLS enabled and forced on sensitive table.
 - Deny-by-default select posture on base table.
@@ -118,14 +109,14 @@ Room Board (Polling every 5s)
 - Check constraints for ranges and field limits.
 - Public projection view excludes email.
 
-### 2) Application controls
+### Application controls
 
 - Honeypot field for low-effort bot filtering.
 - Server-side validation for payload shape and bounds.
 - Optional throttling strategy for burst abuse.
 - Escaped rendering to reduce injection risk.
 
-### 3) STRIDE summary
+### STRIDE summary
 
 | Threat | Primary mitigation | Residual risk |
 | --- | --- | --- |
@@ -136,55 +127,10 @@ Room Board (Polling every 5s)
 | Denial of service | Throttling + fallback mode | Moderate under hostile traffic |
 | Elevation of privilege | No public base-table reads | Low to moderate |
 
----
-
-## Runtime Validation Discipline
-
-Pre-demo runtime validation is a release gate.
-
-- Preflight SQL checks for table/view access behavior
-- Email non-exposure verification in payload and UI
-- Duplicate insert rejection check
-- Comfort-level bounds check
-- XSS rendering sanity check
-- Mobile QR sanity checklist for iPhone Safari and Android Chrome
-
-Go/No-Go requires all privacy and boundary checks to pass.
-
-References:
-- `docs/runtime-validation.md`
-- `ops/preflight.md`
-- `docs/traceability-matrix.md`
-- `docs/handoff/README.md`
-- `tests/ui-mobile-audit.md`
-
-If documentation conflicts, prioritize:
-1. `docs/rls-policies.md`
-2. `docs/runtime-validation.md`
-3. `docs/PRD.md`
-
----
-
-## Why this is not just a directory
-
-This implementation acts as a projection-bound identity and capability mapping layer. It demonstrates a reusable pattern for governed AI-enabled workflows inside organizations. The value is not the UI alone. The value is constraint removal with enforceable controls.
-
----
-
-## AI Infrastructure Sprint Model
-
-1. Constraint mapping
-2. Architecture and governance design
-3. Working alpha delivery
-4. ROI framing and roadmap handoff
-
-This sprint produces a working artifact, not a slide deck.
-
----
-
 ## Quickstart (10 minutes)
 
 ### Prerequisites
+
 - Node 20+
 - A Neon Postgres database
 
@@ -208,25 +154,19 @@ NEXT_PUBLIC_ATTENDEE_AUTH_REQUIRED=false # set true for public beta auth gating
 # CLERK_SECRET_KEY=...
 ```
 
-### Auth posture defaults
-
-- Recommended handoff mode: gated attendee auth (`NEXT_PUBLIC_ATTENDEE_AUTH_REQUIRED=true`) for public beta.
-- If attendee auth is required but Clerk keys are missing, attendee auth endpoints fail closed with explicit setup errors.
-- `/admin` is an authenticated operational surface for facilitator decisions and audit-linked actions.
-
-Run bootstrap readiness checks:
+### 2) Run bootstrap readiness
 
 ```bash
 npm run bootstrap:beta
 ```
 
-### 2) Apply database schema + policies
+### 3) Apply database schema + policies
 
 Follow:
 - `docs/data-model.md`
 - `docs/rls-policies.md`
 
-### 3) Run locally
+### 4) Start locally
 
 ```bash
 npm run dev
@@ -237,7 +177,26 @@ Open:
 - `http://localhost:3000/room`
 - `http://localhost:3000/sign-in` (when attendee auth is enabled)
 
-### 4) Validate before demo
+## Auth Posture Defaults
+
+- Recommended handoff mode: gated attendee auth (`NEXT_PUBLIC_ATTENDEE_AUTH_REQUIRED=true`) for public beta.
+- If attendee auth is required but Clerk keys are missing, attendee auth endpoints fail closed with explicit setup errors.
+- `/admin` is an authenticated operational surface for facilitator decisions and audit-linked actions.
+
+## Runtime Validation Discipline
+
+Pre-demo runtime validation is a release gate.
+
+- Preflight SQL checks for table/view access behavior
+- Email non-exposure verification in payload and UI
+- Duplicate insert rejection check
+- Comfort-level bounds check
+- XSS rendering sanity check
+- Mobile QR sanity checklist for iPhone Safari and Android Chrome
+
+Go/No-Go requires all privacy and boundary checks to pass.
+
+Run before release:
 
 ```bash
 npm run typecheck
@@ -245,35 +204,30 @@ npm test
 npm run build
 ```
 
-Also run the privacy/runtime checks in:
+Primary references:
 - `docs/runtime-validation.md`
 - `ops/preflight.md`
-- `docs/handoff/operator-checklist.md`
+- `docs/traceability-matrix.md`
+- `docs/handoff/README.md`
+- `tests/ui-mobile-audit.md`
 
-## Setup Overview (High level)
+If documentation conflicts, prioritize:
+1. `docs/rls-policies.md`
+2. `docs/runtime-validation.md`
+3. `docs/PRD.md`
 
-### Stack
+## Why this is more than a directory
 
-- Next.js
-- Neon Postgres
-- Postgres RLS policies
+This implementation acts as a projection-bound identity and capability mapping layer. It demonstrates a reusable pattern for governed AI-enabled workflows inside organizations.
 
-### Environment variables
+## AI Infrastructure Sprint Model
 
-- `DATABASE_URL` (server-side only)
+1. Constraint mapping
+2. Architecture and governance design
+3. Working alpha delivery
+4. ROI framing and roadmap handoff
 
-### Setup outline
-
-1. Provision Neon project.
-2. Apply schema and RLS docs.
-3. Start app locally.
-4. Run runtime validation checks.
-
-References:
-- `docs/data-model.md`
-- `docs/rls-policies.md`
-
----
+This sprint produces a working artifact, not a slide deck.
 
 ## Design Principles
 
@@ -284,17 +238,13 @@ References:
 - Make consent explicit and default-safe.
 - Keep operational knobs separate from reference artifacts.
 
----
-
-## What we deliberately did not do
+## Deliberate Non-Goals
 
 - No OAuth/SSO flows in alpha.
 - No realtime subscription dependency for demo path.
 - No marketing or compliance claims.
 - No schema overreach beyond current constraint.
 - No dependency expansion outside core stack.
-
----
 
 ## Repository Navigation
 
@@ -303,7 +253,7 @@ References:
 - `ops/` operational checklists and incident guidance
 - `prompts/` implementation notes for maintainers (product-focused only)
 
-## Design System
+## Design System References
 
 For demo-facing UI, use the minimal design system package:
 - `docs/brand-guidelines.md`
