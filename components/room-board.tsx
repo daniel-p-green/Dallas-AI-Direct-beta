@@ -7,6 +7,15 @@ import { MetricsStrip } from "@/components/metrics-strip"
 /* ------------------------------------------------------------------ */
 /* Seed data -- shown when live Neon-backed data is unavailable       */
 /* ------------------------------------------------------------------ */
+const SEED_TIMESTAMPS = [
+  '2026-02-15T19:58:00.000Z',
+  '2026-02-15T19:59:00.000Z',
+  '2026-02-15T20:00:00.000Z',
+  '2026-02-15T20:01:00.000Z',
+  '2026-02-15T20:02:00.000Z',
+  '2026-02-15T20:03:00.000Z',
+] as const
+
 const SEED_ATTENDEES: Attendee[] = [
   {
     name: "Jordan Chen",
@@ -15,7 +24,7 @@ const SEED_ATTENDEES: Attendee[] = [
     linkedin_url: "https://linkedin.com",
     ai_comfort_level: 4,
     help_offered: ["Mentoring", "Hiring"],
-    created_at: new Date(Date.now() - 120_000).toISOString(),
+    created_at: SEED_TIMESTAMPS[0],
   },
   {
     name: "Priya Sharma",
@@ -24,14 +33,14 @@ const SEED_ATTENDEES: Attendee[] = [
     linkedin_url: "https://linkedin.com",
     ai_comfort_level: 5,
     help_offered: ["Partnering"],
-    created_at: new Date(Date.now() - 60_000).toISOString(),
+    created_at: SEED_TIMESTAMPS[1],
   },
   {
     name: "Marcus Rivera",
     linkedin_url: "https://linkedin.com",
     ai_comfort_level: 2,
     help_offered: ["Learning"],
-    created_at: new Date(Date.now() - 30_000).toISOString(),
+    created_at: SEED_TIMESTAMPS[2],
   },
   {
     name: "Sarah Kim",
@@ -39,7 +48,7 @@ const SEED_ATTENDEES: Attendee[] = [
     company: "DataFlow",
     ai_comfort_level: 5,
     help_offered: ["Investing", "Mentoring"],
-    created_at: new Date(Date.now() - 3_000).toISOString(),
+    created_at: SEED_TIMESTAMPS[3],
   },
   {
     name: "Alex Thompson",
@@ -48,7 +57,7 @@ const SEED_ATTENDEES: Attendee[] = [
     linkedin_url: "https://linkedin.com",
     ai_comfort_level: 3,
     help_offered: ["Hiring", "Partnering"],
-    created_at: new Date(Date.now() - 180_000).toISOString(),
+    created_at: SEED_TIMESTAMPS[4],
   },
   {
     name: "Lisa Wong",
@@ -56,7 +65,7 @@ const SEED_ATTENDEES: Attendee[] = [
     company: "TechCorp",
     ai_comfort_level: 4,
     help_offered: ["Mentoring", "Learning"],
-    created_at: new Date(Date.now() - 240_000).toISOString(),
+    created_at: SEED_TIMESTAMPS[5],
   },
 ]
 

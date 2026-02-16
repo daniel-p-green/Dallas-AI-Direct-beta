@@ -14,6 +14,7 @@ Use this file to run the fastest safe path before live demo.
 ## Run now
 
 ```bash
+npm run bootstrap:beta
 npm run build
 npm test
 npx playwright test tests/ui-mobile-audit.spec.ts
@@ -28,6 +29,7 @@ No-Go if:
 - any test fails
 - any public path exposes email
 - any boundary check fails in `ops/preflight.md`
+- attendee auth is required but Clerk keys are not configured
 
 ## Source-of-truth rule
 

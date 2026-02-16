@@ -4,7 +4,8 @@ import { useRouter } from 'next/navigation';
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 
 type MatchStatus = 'suggested' | 'approved' | 'rejected';
-type DecisionAction = 'approve' | 'reject';
+type IntroOutcome = 'pending' | 'delivered' | 'not_delivered';
+type DecisionAction = 'approve' | 'reject' | 'delivered' | 'not_delivered';
 
 type QueueItem = {
   suggestion_id: string;
@@ -37,6 +38,9 @@ type QueueItem = {
     recency_score: number;
     consent_visibility_score: number;
   };
+  intro_outcome: IntroOutcome;
+  intro_outcome_at: string | null;
+  intro_outcome_by: string | null;
 };
 
 type EventSession = {
@@ -99,6 +103,7 @@ export default function AdminPage() {
   const [authChecked, setAuthChecked] = useState(false);
   const [authorized, setAuthorized] = useState(false);
   const [items, setItems] = useState<QueueItem[]>([]);
+  const [approvedItems, setApprovedItems] = useState<QueueItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -113,6 +118,18 @@ export default function AdminPage() {
   const [eventForm, setEventForm] = useState<CreateEventFormState>(EMPTY_EVENT_FORM);
 
   const pendingCount = useMemo(() => items.filter((item) => item.status === 'suggested').length, [items]);
+  const approvedCount = useMemo(() => approvedItems.length, [approvedItems]);
+  const deliveredCount = useMemo(
+    () => approvedItems.filter((item) => item.intro_outcome === 'delivered').length,
+    [approvedItems]
+  );
+  const introConversionPct = useMemo(() => {
+    if (approvedCount === 0) {
+      return 0;
+    }
+
+    return Math.round((deliveredCount / approvedCount) * 100);
+  }, [approvedCount, deliveredCount]);
 
   useEffect(() => {
     let active = true;
@@ -152,16 +169,26 @@ export default function AdminPage() {
 
   const loadQueue = useCallback(async () => {
     try {
-      const response = await fetch('/api/matches/facilitator-queue?status=suggested&page=1&pageSize=50', {
-        cache: 'no-store'
-      });
+      const [suggestedResponse, approvedResponse] = await Promise.all([
+        fetch('/api/matches/facilitator-queue?status=suggested&page=1&pageSize=50', {
+          cache: 'no-store',
+        }),
+        fetch('/api/matches/facilitator-queue?status=approved&page=1&pageSize=50', {
+          cache: 'no-store',
+        }),
+      ]);
 
-      if (!response.ok) {
+      if (!suggestedResponse.ok || !approvedResponse.ok) {
         throw new Error('Facilitator queue unavailable');
       }
 
-      const json = (await response.json()) as QueueResponse;
-      setItems(Array.isArray(json.data) ? json.data : []);
+      const [suggestedJson, approvedJson] = (await Promise.all([
+        suggestedResponse.json(),
+        approvedResponse.json(),
+      ])) as [QueueResponse, QueueResponse];
+
+      setItems(Array.isArray(suggestedJson.data) ? suggestedJson.data : []);
+      setApprovedItems(Array.isArray(approvedJson.data) ? approvedJson.data : []);
       setError(null);
     } catch {
       setError('Could not load facilitator queue. Try again in a few seconds.');
@@ -211,11 +238,24 @@ export default function AdminPage() {
   const submitDecision = useCallback(
     async (suggestionId: string, action: DecisionAction) => {
       const previous = items;
+      const previousApproved = approvedItems;
       setPendingIds((state) => ({ ...state, [suggestionId]: true }));
       setNotice(null);
       setError(null);
 
       setItems((state) => state.filter((item) => item.suggestion_id !== suggestionId));
+      if (action === 'delivered' || action === 'not_delivered') {
+        setApprovedItems((state) =>
+          state.map((item) =>
+            item.suggestion_id === suggestionId
+              ? {
+                  ...item,
+                  intro_outcome: action,
+                }
+              : item
+          )
+        );
+      }
 
       try {
         const response = await fetch(`/api/matches/${suggestionId}/decision`, {
@@ -233,10 +273,17 @@ export default function AdminPage() {
           throw new Error('Decision request failed');
         }
 
-        setNotice(action === 'approve' ? 'Suggestion approved.' : 'Suggestion rejected.');
+        if (action === 'approve') {
+          setNotice('Suggestion approved.');
+        } else if (action === 'reject') {
+          setNotice('Suggestion rejected.');
+        } else {
+          setNotice(action === 'delivered' ? 'Intro marked delivered.' : 'Intro marked not delivered.');
+        }
         void loadQueue();
       } catch {
         setItems(previous);
+        setApprovedItems(previousApproved);
         setError('Decision failed. Queue has been restored.');
       } finally {
         setPendingIds((state) => {
@@ -246,7 +293,7 @@ export default function AdminPage() {
         });
       }
     },
-    [items, loadQueue]
+    [approvedItems, items, loadQueue]
   );
 
   const createEventSession = useCallback(async (event: FormEvent<HTMLFormElement>) => {
@@ -495,6 +542,16 @@ export default function AdminPage() {
             <p className="metricLabel">Pending suggestions</p>
             <p className="metricValue">{pendingCount}</p>
           </div>
+          <div className="metricCard">
+            <p className="metricLabel">Approved intros</p>
+            <p className="metricValue">{approvedCount}</p>
+          </div>
+          <div className="metricCard">
+            <p className="metricLabel">Intro conversion</p>
+            <p className="metricValue">
+              {introConversionPct}% <span className="muted">({deliveredCount}/{approvedCount || 0})</span>
+            </p>
+          </div>
         </div>
 
         {loading ? <p className="muted">Loading facilitator queue…</p> : null}
@@ -574,6 +631,55 @@ export default function AdminPage() {
             })}
           </div>
         )}
+
+        <div className="stack">
+          <h4>You should meet outcomes</h4>
+          {approvedItems.length === 0 ? (
+            <p className="muted">No approved introductions yet.</p>
+          ) : (
+            <div className="adminQueue">
+              {approvedItems.map((item) => {
+                const isPending = pendingIds[item.suggestion_id] === true;
+
+                return (
+                  <article key={`outcome-${item.suggestion_id}`} className="adminSuggestionCard">
+                    <header className="adminSuggestionHeader">
+                      <strong>
+                        {item.attendee.name} → {item.matched_attendee.name}
+                      </strong>
+                      <span className="badge">
+                        {item.intro_outcome === 'pending'
+                          ? 'Outcome pending'
+                          : item.intro_outcome === 'delivered'
+                            ? 'Delivered'
+                            : 'Not delivered'}
+                      </span>
+                    </header>
+                    <p className="muted">Approved intro outcome tracking for post-event quality.</p>
+                    <div className="ctaRow">
+                      <button
+                        type="button"
+                        className="button"
+                        disabled={isPending || item.intro_outcome === 'delivered'}
+                        onClick={() => void submitDecision(item.suggestion_id, 'delivered')}
+                      >
+                        {isPending ? 'Saving…' : 'Mark delivered'}
+                      </button>
+                      <button
+                        type="button"
+                        className="buttonSecondary"
+                        disabled={isPending || item.intro_outcome === 'not_delivered'}
+                        onClick={() => void submitDecision(item.suggestion_id, 'not_delivered')}
+                      >
+                        Mark not delivered
+                      </button>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </article>
     </section>
   );

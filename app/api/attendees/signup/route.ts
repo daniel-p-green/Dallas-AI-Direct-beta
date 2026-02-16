@@ -4,6 +4,7 @@ import { getDb, hasDatabaseUrl } from '../../../../lib/db/server';
 import { getSignupProtectionConfig } from '../../../../lib/signup-protection-config';
 import { computeSignupRiskSignal, type SignupRiskSignal } from '../../../../lib/signup-risk-scoring';
 import { resolveActiveEventSession } from '../../../../lib/event-session';
+import { requireAttendeeOrAdminApiAccess } from '../../../../lib/attendee-auth';
 
 type SignupPayload = {
   name: string;
@@ -331,6 +332,11 @@ async function recordRiskEvent(args: {
 export async function POST(request: Request) {
   if (!hasDatabaseUrl()) {
     return NextResponse.json({ error: 'Signup unavailable' }, { status: 503 });
+  }
+
+  const access = await requireAttendeeOrAdminApiAccess();
+  if (!access.ok) {
+    return access.response;
   }
 
   const config = getSignupProtectionConfig();

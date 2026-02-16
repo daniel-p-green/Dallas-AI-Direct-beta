@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb, hasDatabaseUrl } from '../../../../lib/db/server';
 import { resolveEventSessionForRequest } from '../../../../lib/event-session';
+import { requireAttendeeOrAdminApiAccess } from '../../../../lib/attendee-auth';
 
 type MatchStatus = 'suggested' | 'approved';
 
@@ -113,6 +114,11 @@ function toSafeProfile(row: {
 export async function GET(request: Request) {
   if (!hasDatabaseUrl()) {
     return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
+  }
+
+  const access = await requireAttendeeOrAdminApiAccess();
+  if (!access.ok) {
+    return access.response;
   }
 
   try {

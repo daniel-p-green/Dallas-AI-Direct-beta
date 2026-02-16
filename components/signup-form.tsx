@@ -27,6 +27,11 @@ type Status =
 /* Form                                                                */
 /* ------------------------------------------------------------------ */
 export function SignupForm() {
+  const attendeeAuthEnabled =
+    process.env.NEXT_PUBLIC_ATTENDEE_AUTH_REQUIRED === 'true' &&
+    Boolean(process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && process.env.CLERK_SECRET_KEY)
+  const roomHref = attendeeAuthEnabled ? '/sign-in?redirect_url=/room' : '/room'
+
   const [status, setStatus] = useState<Status>({ type: "idle" })
   const [helpNeeded, setHelpNeeded] = useState<string[]>([])
   const [helpOffered, setHelpOffered] = useState<string[]>([])
@@ -140,7 +145,7 @@ export function SignupForm() {
         </h2>
         <p className="mt-2 text-sm text-muted-foreground">{status.message}</p>
         <Link
-          href="/room"
+          href={roomHref}
           className="btn btn-primary mt-8"
         >
           View Directory
@@ -355,7 +360,7 @@ export function SignupForm() {
             {status.type === "submitting" ? "Joining\u2026" : "Join Event"}
           </button>
           <Link
-            href="/room"
+            href={roomHref}
             className="btn btn-secondary sm:flex-1"
           >
             View Directory

@@ -197,6 +197,19 @@ Set:
 
 ```bash
 DATABASE_URL=postgres://...
+SESSION_SECRET=...
+ADMIN_EMAIL=...
+ADMIN_PASSWORD=...
+NEXT_PUBLIC_ATTENDEE_AUTH_REQUIRED=false # set true for public beta auth gating
+# if enabled:
+# NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=...
+# CLERK_SECRET_KEY=...
+```
+
+Run bootstrap readiness checks:
+
+```bash
+npm run bootstrap:beta
 ```
 
 ### 2) Apply database schema + policies
@@ -214,6 +227,7 @@ npm run dev
 Open:
 - `http://localhost:3000/signup`
 - `http://localhost:3000/room`
+- `http://localhost:3000/sign-in` (when attendee auth is enabled)
 
 ### 4) Validate before demo
 

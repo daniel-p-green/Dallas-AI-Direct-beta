@@ -29,8 +29,10 @@ This list captures gaps between current implementation and documented intent.
   - **Acceptance:** no ambiguity that controls are non-privileged and non-persistent.
 
 - [ ] Add deterministic setup/bootstrap path for new maintainers.
+- [x] Add deterministic setup/bootstrap path for new maintainers.
   - **Owner:** maintainers
   - **Acceptance:** one checklist/script verifies env vars, DB readiness, and local smoke paths (`/signup`, `/room`).
+  - **Status:** shipped via `npm run bootstrap:beta` (`scripts/bootstrap-beta.mjs`).
 
 ## P1 (important completeness)
 
