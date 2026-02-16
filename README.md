@@ -29,6 +29,26 @@ Teams need real-time attendee context during events, but most tools blur the lin
 | Governed operations | RLS + constraints + deterministic validation gates |
 | Operator confidence | Reproducible `typecheck`, `test`, and `build` checks |
 
+## Live Product Screenshots
+
+Current `main` build captures for repo readers who want visual context before running locally.
+
+### Desktop
+
+| Landing | Signup |
+| --- | --- |
+| ![Dallas AI Direct landing page (desktop)](public/readme/live-home.png) | ![Dallas AI Direct signup page (desktop)](public/readme/live-signup.png) |
+
+| Room Directory | Admin Login |
+| --- | --- |
+| ![Dallas AI Direct room directory (desktop)](public/readme/live-room.png) | ![Dallas AI Direct admin login (desktop)](public/readme/live-login.png) |
+
+### Mobile
+
+| Landing | Room Directory |
+| --- | --- |
+| ![Dallas AI Direct landing page (mobile)](public/readme/live-home-mobile.png) | ![Dallas AI Direct room directory (mobile)](public/readme/live-room-mobile.png) |
+
 ## Hero Moment
 
 Attendees scan a QR code, submit in about 30 seconds, and appear on the room board within 5 seconds. The board reads only public-safe fields. Email never appears on public surfaces. Database boundary controls enforce the policy even if UI behavior changes.
