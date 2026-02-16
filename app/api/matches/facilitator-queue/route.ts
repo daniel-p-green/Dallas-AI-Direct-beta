@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getDb, hasDatabaseUrl } from '../../../../lib/db/server';
+import { assertAdminRequest } from '../../../../lib/security';
 
 type MatchStatus = 'suggested' | 'approved' | 'rejected';
 
@@ -114,6 +115,11 @@ function parseStatusFilter(rawStatus: string | null): MatchStatus[] {
 }
 
 export async function GET(request: Request) {
+  const authError = assertAdminRequest(request);
+  if (authError) {
+    return authError;
+  }
+
   if (!hasDatabaseUrl()) {
     return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
   }

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getDb, hasDatabaseUrl } from '../../../../../lib/db/server';
+import { assertAdminRequest } from '../../../../../lib/security';
 
 type MatchStatus = 'suggested' | 'approved' | 'rejected';
 type DecisionAction = 'approve' | 'reject';
@@ -62,6 +63,11 @@ function toRouteParams(context: { params: Promise<{ suggestionId?: string }> }) 
 }
 
 async function decide(request: Request, context: { params: Promise<{ suggestionId?: string }> }) {
+  const authError = assertAdminRequest(request);
+  if (authError) {
+    return authError;
+  }
+
   if (!hasDatabaseUrl()) {
     return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
   }

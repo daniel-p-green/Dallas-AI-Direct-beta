@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getDb, hasDatabaseUrl } from '../../../../lib/db/server';
+import { assertAdminRequest } from '../../../../lib/security';
 
 type ModerationStatus = 'pending' | 'reviewing' | 'resolved' | 'false_positive';
 
@@ -99,6 +100,11 @@ function toQueueItem(row: QueueRow) {
 }
 
 export async function GET(request: Request) {
+  const authError = assertAdminRequest(request);
+  if (authError) {
+    return authError;
+  }
+
   if (!hasDatabaseUrl()) {
     return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
   }
@@ -165,6 +171,11 @@ export async function GET(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  const authError = assertAdminRequest(request);
+  if (authError) {
+    return authError;
+  }
+
   if (!hasDatabaseUrl()) {
     return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
   }

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb, hasDatabaseUrl } from '../../../../lib/db/server';
 import { MATCH_SCORING_VERSION, MATCH_SCORE_WEIGHTS, rankMatches } from '../../../../lib/match-scoring';
+import { assertAdminRequest } from '../../../../lib/security';
 
 type GeneratePayload = {
   topN: number;
@@ -70,6 +71,11 @@ function toPublicCandidate(candidate: AttendeeRow) {
 }
 
 export async function POST(request: Request) {
+  const authError = assertAdminRequest(request);
+  if (authError) {
+    return authError;
+  }
+
   if (!hasDatabaseUrl()) {
     return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
   }

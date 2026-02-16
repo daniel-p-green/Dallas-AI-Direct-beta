@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getDb, hasDatabaseUrl } from '../../../lib/db/server';
 import { resolveActiveEventSession, setActiveEventSession } from '../../../lib/event-session';
+import { assertAdminRequest } from '../../../lib/security';
 
 type EventRow = {
   id: string;
@@ -101,7 +102,12 @@ function validateEventWindows(input: EventWindowInput) {
   return null;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
+  const authError = assertAdminRequest(request);
+  if (authError) {
+    return authError;
+  }
+
   if (!hasDatabaseUrl()) {
     return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
   }
@@ -136,6 +142,11 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const authError = assertAdminRequest(request);
+  if (authError) {
+    return authError;
+  }
+
   if (!hasDatabaseUrl()) {
     return NextResponse.json({ error: 'Database unavailable' }, { status: 503 });
   }
