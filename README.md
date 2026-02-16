@@ -53,16 +53,6 @@ Current `main` build captures for repo readers who want visual context before ru
 
 Attendees scan a QR code, submit in about 30 seconds, and appear on the room board within 5 seconds. The board reads only public-safe fields. Email never appears on public surfaces. Database boundary controls enforce the policy even if UI behavior changes.
 
-To regenerate assets from repo root:
-
-```bash
-npm run demo:remotion:generate
-# or run render/still/check separately
-npm run demo:remotion:render
-npm run demo:remotion:still
-npm run demo:remotion:check
-```
-
 ---
 
 ## Architecture Snapshot
