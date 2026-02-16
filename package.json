@@ -8,6 +8,8 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test": "node --test tests/*.test.mjs",
+    "seed:admin": "node scripts/seed-admin.mjs",
+    "bootstrap:beta": "node scripts/bootstrap-beta.mjs",
     "demo:remotion:install": "npm --prefix demo/remotion install",
     "demo:remotion:preview": "npm run demo:remotion:install && npm --prefix demo/remotion run preview",
     "demo:remotion:render": "npm run demo:remotion:install && npm --prefix demo/remotion run render",
@@ -16,17 +18,25 @@
     "demo:remotion:generate": "npm run demo:remotion:render && npm run demo:remotion:still && npm run demo:remotion:check"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.10.0",
+    "@neondatabase/serverless": "^0.10.4",
+    "bcryptjs": "^2.4.3",
     "geist": "^1.7.0",
     "next": "15.1.11",
-    "postgres": "^3.4.8",
     "react": "19.0.0",
-    "react-dom": "19.0.0"
+    "react-dom": "19.0.0",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.2",
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^22.13.5",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.3",
+    "@types/ws": "^8.18.1",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.1",
+    "tailwindcss": "^3.4.17",
     "typescript": "^5.7.3"
   },
   "license": "MIT"

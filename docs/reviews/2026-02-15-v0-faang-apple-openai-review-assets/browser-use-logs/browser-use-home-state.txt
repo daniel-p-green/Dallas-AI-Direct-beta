@@ -1,0 +1,38 @@
+Skip to content
+[156]<a />
+	[186]<span />
+		Dallas AI Direct
+[158]<a />
+	Sign Up
+[159]<a />
+	Directory
+[191]<a />
+	Join Dallas AI
+Dallas AI Direct
+Connecting 10,000+ minds building the future of AI in Dallas.
+The live directory for Dallas AI events. Share what you are working on, find the right people, and turn every meetup into your next opportunity.
+[161]<a />
+	Join the Event
+[162]<a />
+	Browse the Room
+[209]<dt />
+	10,000+
+Community members
+Privacy-first
+Email never shared
+Live signals
+Hiring, learning, building
+<svg /> <!-- SVG content collapsed -->
+Email never displayed
+Built by
+[237]<a />
+	Daniel Green
+[240]<a aria-label=Built with v0 by Vercel />
+	Built with
+	v0
+Open Shadow
+	[275]<div role=status live=polite />
+		[277]<div />
+			<svg /> <!-- SVG content collapsed -->
+		[282]<button aria-label=Hide static indicator />
+Shadow End

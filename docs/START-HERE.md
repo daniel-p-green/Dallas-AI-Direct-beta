@@ -1,21 +1,24 @@
-# START HERE (Demo Build Version)
+# START HERE (Ops-Ready Beta Handoff)
 
-Use this file to run the fastest safe path before live demo.
+Use this file to run the fastest safe path before a Dallas AI live event.
 
 ## Read in this order
 
 1. `docs/PRD.md`
-2. `docs/rls-policies.md`
-3. `docs/security.md`
-4. `docs/runtime-validation.md`
-5. `docs/PRE-DEMO-COMMAND-CARD.md`
-6. `docs/OPEN-TODO.md`
+2. `docs/traceability-matrix.md`
+3. `docs/rls-policies.md`
+4. `docs/security.md`
+5. `docs/runtime-validation.md`
+6. `docs/handoff/README.md`
+7. `docs/OPEN-TODO.md`
 
 ## Run now
 
 ```bash
-npm run build
+npm run bootstrap:beta
+npm run typecheck
 npm test
+npm run build
 npx playwright test tests/ui-mobile-audit.spec.ts
 bash tests/validate-brand-guidelines.sh
 ```
@@ -28,6 +31,16 @@ No-Go if:
 - any test fails
 - any public path exposes email
 - any boundary check fails in `ops/preflight.md`
+- attendee auth is required but Clerk keys are not configured
+- admin operational flow cannot authenticate or write auditable decisions
+
+## Admin posture
+
+`/admin` is an authenticated operational surface:
+- auth required
+- facilitator decisions are auditable
+- privacy constraints are still enforced (no public email exposure)
+- if attendee auth is unavailable in gated mode, fail closed and follow `docs/handoff/go-no-go-signoff.md`
 
 ## Source-of-truth rule
 

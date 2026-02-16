@@ -32,11 +32,11 @@ test('signup API rejects unsafe linkedin schemes', () => {
 });
 
 test('room UI only renders clickable linkedin links for safe http/https urls', () => {
-  const roomPage = read('app/room/page.tsx');
+  const attendeeCard = read('components/attendee-card.tsx');
 
-  assert.match(roomPage, /function getSafeHttpUrl\(/);
-  assert.match(roomPage, /parsed\.protocol === 'http:' \|\| parsed\.protocol === 'https:' \? parsed\.toString\(\) : null/);
-  assert.match(roomPage, /\{safeLinkedinUrl \? \(/);
-  assert.match(roomPage, /href=\{safeLinkedinUrl\}/);
-  assert.match(roomPage, /aria-label="LinkedIn profile unavailable"/);
+  assert.match(attendeeCard, /export function getSafeHttpUrl\(/);
+  assert.match(attendeeCard, /parsed\.protocol === "http:" \|\| parsed\.protocol === "https:"/);
+  assert.match(attendeeCard, /\{safeLinkedinUrl \? \(/);
+  assert.match(attendeeCard, /href=\{safeLinkedinUrl\}/);
+  assert.match(attendeeCard, /aria-label="LinkedIn profile unavailable"/);
 });

@@ -44,9 +44,9 @@ test('public room API scopes attendee feed by selected or active event and retur
 });
 
 test('room UI renders active session context and server-provided scoped aggregates', () => {
-  const page = read('app/room/page.tsx');
+  const page = read('components/room-board.tsx');
 
-  assert.match(page, /Session: \$\{activeEvent\.name\}/);
+  assert.match(page, /Session: \{activeEvent\?\.name \?\? "Legacy \(no active event\)"\}/);
   assert.match(page, /setAggregates\(/);
   assert.match(page, /aggregates\.attendeeCount/);
   assert.match(page, /aggregates\.highComfortPct/);

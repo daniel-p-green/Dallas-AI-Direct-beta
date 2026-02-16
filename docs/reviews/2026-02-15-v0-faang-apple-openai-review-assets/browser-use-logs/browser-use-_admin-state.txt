@@ -1,0 +1,34 @@
+Skip to content
+[937]<a />
+	[967]<span />
+		Dallas AI Direct
+[939]<a />
+	Sign Up
+[940]<a />
+	Directory
+[972]<a />
+	Join Dallas AI
+Admin Login
+Sign in to manage Dallas AI Direct.
+Email
+|SHADOW(open)|[931]<input id=email autocomplete=email placeholder=admin@dallas-ai.org type=email name=email required=true />
+Password
+|SHADOW(open)|[932]<input autocomplete=current-password placeholder=Enter your password type=password required=true />
+[933]<button type=submit />
+	Sign In
+[943]<a />
+	Back to Dallas AI Direct
+<svg /> <!-- SVG content collapsed -->
+Email never displayed
+Built by
+[1009]<a />
+	Daniel Green
+[1012]<a aria-label=Built with v0 by Vercel />
+	Built with
+	v0
+Open Shadow
+	[1045]<div role=status live=polite />
+		[1047]<div />
+			<svg /> <!-- SVG content collapsed -->
+		[1052]<button aria-label=Hide static indicator />
+Shadow End

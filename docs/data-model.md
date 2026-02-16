@@ -15,8 +15,8 @@
 | `ai_comfort_level` | `int` | required, range `1..5` |
 | `help_needed` | `text[]` | required, multi-select |
 | `help_offered` | `text[]` | required, multi-select |
-| `other_help_needed` | `text` | optional free text |
-| `other_help_offered` | `text` | optional free text |
+| `other_help_needed` | `text` | optional free text (recommended max 500 chars) |
+| `other_help_offered` | `text` | optional free text (recommended max 500 chars) |
 | `honeypot` | `text` | optional, must remain empty |
 | `event_id` | `uuid` fk | optional reference to `events.id` (`on delete set null`) for event-session scoping |
 

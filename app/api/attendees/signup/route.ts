@@ -4,6 +4,7 @@ import { getDb, hasDatabaseUrl } from '../../../../lib/db/server';
 import { getSignupProtectionConfig } from '../../../../lib/signup-protection-config';
 import { computeSignupRiskSignal, type SignupRiskSignal } from '../../../../lib/signup-risk-scoring';
 import { resolveActiveEventSession } from '../../../../lib/event-session';
+import { requireAttendeeOrAdminApiAccess } from '../../../../lib/attendee-auth';
 
 type SignupPayload = {
   name: string;
@@ -44,6 +45,28 @@ function normalizeOptionalText(value: unknown) {
   }
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
+}
+
+function normalizeSafeLinkedinUrl(value: unknown): { ok: true; url: string | null } | { ok: false } {
+  if (typeof value !== 'string') {
+    return { ok: true, url: null };
+  }
+
+  const normalized = value.trim();
+  if (normalized.length === 0) {
+    return { ok: true, url: null };
+  }
+
+  try {
+    const parsed = new URL(normalized);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return { ok: false };
+    }
+
+    return { ok: true, url: parsed.toString() };
+  } catch {
+    return { ok: false };
+  }
 }
 
 function toStringArray(values: unknown) {
@@ -163,10 +186,20 @@ function validate(body: unknown): { ok: true; payload: SignupPayload } | { ok: f
   }
 
   const honeypot = typeof source.honeypot === 'string' ? source.honeypot.trim() : '';
-  const linkedin = normalizeSafeLinkedinUrl(source.linkedin_url);
+  const normalizedLinkedinUrl = normalizeSafeLinkedinUrl(source.linkedin_url);
+  const otherHelpNeeded = normalizeOptionalText(source.other_help_needed);
+  const otherHelpOffered = normalizeOptionalText(source.other_help_offered);
 
-  if (!linkedin.ok) {
+  if (!normalizedLinkedinUrl.ok) {
     return { ok: false, message: 'LinkedIn URL must use http or https.' };
+  }
+
+  if (otherHelpNeeded && otherHelpNeeded.length > 500) {
+    return { ok: false, message: 'Other help needed must be 500 characters or fewer.' };
+  }
+
+  if (otherHelpOffered && otherHelpOffered.length > 500) {
+    return { ok: false, message: 'Other help offered must be 500 characters or fewer.' };
   }
 
   return {
@@ -174,7 +207,7 @@ function validate(body: unknown): { ok: true; payload: SignupPayload } | { ok: f
     payload: {
       name,
       email,
-      linkedin_url: linkedin.url,
+      linkedin_url: normalizedLinkedinUrl.url,
       title: normalizeOptionalText(source.title),
       company: normalizeOptionalText(source.company),
       display_title_company: Boolean(source.display_title_company),
@@ -182,8 +215,8 @@ function validate(body: unknown): { ok: true; payload: SignupPayload } | { ok: f
       help_needed: toStringArray(source.help_needed),
       help_offered: toStringArray(source.help_offered),
       honeypot,
-      other_help_needed: normalizeOptionalText(source.other_help_needed),
-      other_help_offered: normalizeOptionalText(source.other_help_offered),
+      other_help_needed: otherHelpNeeded,
+      other_help_offered: otherHelpOffered,
     },
   };
 }
@@ -309,6 +342,11 @@ async function recordRiskEvent(args: {
 export async function POST(request: Request) {
   if (!hasDatabaseUrl()) {
     return NextResponse.json({ error: 'Signup unavailable' }, { status: 503 });
+  }
+
+  const access = await requireAttendeeOrAdminApiAccess();
+  if (!access.ok) {
+    return access.response;
   }
 
   const config = getSignupProtectionConfig();

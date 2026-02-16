@@ -6,11 +6,10 @@ const routePath = new URL('../app/api/matches/generate/route.ts', import.meta.ur
 const routeSource = readFileSync(routePath, 'utf8');
 
 test('match generation endpoint persists run and attendee matches transactionally', () => {
-  assert.match(routeSource, /await db`begin`/);
+  assert.match(routeSource, /await db\.withTransaction\(async \(tx\)/);
   assert.match(routeSource, /insert into match_runs/i);
   assert.match(routeSource, /insert into attendee_matches/i);
-  assert.match(routeSource, /await db`commit`/);
-  assert.match(routeSource, /await db`rollback`/);
+  assert.match(routeSource, /return NextResponse\.json\(responsePayload\)/);
 });
 
 test('match generation endpoint uses deterministic ranking service with top-N slicing', () => {
