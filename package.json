@@ -15,7 +15,11 @@
     "demo:remotion:render": "npm run demo:remotion:install && npm --prefix demo/remotion run render",
     "demo:remotion:still": "npm run demo:remotion:install && npm --prefix demo/remotion run still",
     "demo:remotion:check": "npm run demo:remotion:install && npm --prefix demo/remotion run check:artifacts",
-    "demo:remotion:generate": "npm run demo:remotion:render && npm run demo:remotion:still && npm run demo:remotion:check"
+    "demo:remotion:generate": "npm run demo:remotion:render && npm run demo:remotion:still && npm run demo:remotion:check",
+    "demo:remotion:render:overview": "npm run demo:remotion:install && npm --prefix demo/remotion run render:overview",
+    "demo:remotion:still:overview": "npm run demo:remotion:install && npm --prefix demo/remotion run still:overview",
+    "demo:remotion:check:overview": "npm run demo:remotion:install && npm --prefix demo/remotion run check:overview",
+    "demo:remotion:generate:overview": "npm run demo:remotion:render:overview && npm run demo:remotion:still:overview && npm run demo:remotion:check:overview"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.10.0",
